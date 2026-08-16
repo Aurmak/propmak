@@ -12,6 +12,7 @@ import { FinanceHub } from '../components/finance/FinanceHub';
 import { AutomationsHub } from '../components/automations/AutomationsHub';
 import { ContractorDirectory } from '../components/contractors/ContractorDirectory';
 import { StakeholderDirectory } from '../components/users/StakeholderDirectory';
+import { AssetInventory } from '../components/assets/AssetInventory';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -259,6 +260,13 @@ function DashboardContent() {
             {activeTab === 'contractors' && (
               <div className="animate-in fade-in">
                 <ContractorDirectory />
+              </div>
+            )}
+
+            {/* ASSET INVENTORY */}
+            {activeTab === 'assets' && (
+              <div className="animate-in fade-in h-full">
+                <AssetInventory />
               </div>
             )}
 

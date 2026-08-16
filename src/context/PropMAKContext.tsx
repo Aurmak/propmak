@@ -16,7 +16,8 @@ import {
   TicketUrgency,
   TicketStatus,
   Stakeholder,
-  Contractor
+  Contractor,
+  AssetItem
 } from '../types';
 import { 
   mockUnits, 
@@ -28,7 +29,8 @@ import {
   mockCashDrawer,
   mockWhatsAppIngestionEvents,
   mockStakeholders,
-  mockContractors
+  mockContractors,
+  mockAssets
 } from '../data/mockData';
 import confetti from 'canvas-confetti';
 
@@ -37,6 +39,7 @@ interface PropMAKContextType {
   units: Unit[];
   stakeholders: Stakeholder[];
   contractors: Contractor[];
+  assets: AssetItem[];
   transactions: PaymentTransaction[];
   tickets: MaintenanceTicket[];
   utilityBills: UtilityBillRecord[];
@@ -105,6 +108,9 @@ interface PropMAKContextType {
     labourCost?: number;
   }) => string;
   deleteTicket: (ticketId: string) => void;
+  addAsset: (assetData: Omit<AssetItem, 'id' | 'createdAt'>) => string;
+  updateAsset: (assetId: string, assetData: Partial<AssetItem>) => void;
+  deleteAsset: (assetId: string) => void;
   depositCashDrawer: () => void;
   ingestWhatsAppMessage: (senderPhone: string, messageText: string, mediaUrl?: string) => WhatsAppIngestedMessage;
 }
@@ -115,6 +121,7 @@ export const PropMAKProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [units, setUnits] = useState<Unit[]>(mockUnits);
   const [stakeholders, setStakeholders] = useState<Stakeholder[]>(mockStakeholders);
   const [contractors, setContractors] = useState<Contractor[]>(mockContractors);
+  const [assets, setAssets] = useState<AssetItem[]>(mockAssets);
   const [transactions, setTransactions] = useState<PaymentTransaction[]>(mockTransactions);
   const [tickets, setTickets] = useState<MaintenanceTicket[]>(mockTickets);
   const [utilityBills, setUtilityBills] = useState<UtilityBillRecord[]>(mockUtilityBills);
@@ -672,11 +679,28 @@ export const PropMAKProvider: React.FC<{ children: ReactNode }> = ({ children })
     return newEvent;
   };
 
+  // Asset CRUD
+  const addAsset = (assetData: Omit<AssetItem, 'id' | 'createdAt'>): string => {
+    const id = `ast_${Date.now()}`;
+    const newAsset: AssetItem = { ...assetData, id, createdAt: new Date().toISOString().split('T')[0] };
+    setAssets(prev => [newAsset, ...prev]);
+    return id;
+  };
+
+  const updateAsset = (assetId: string, assetData: Partial<AssetItem>) => {
+    setAssets(prev => prev.map(a => a.id === assetId ? { ...a, ...assetData } : a));
+  };
+
+  const deleteAsset = (assetId: string) => {
+    setAssets(prev => prev.filter(a => a.id !== assetId));
+  };
+
   return (
     <PropMAKContext.Provider value={{
       units,
       stakeholders,
       contractors,
+      assets,
       transactions,
       tickets,
       utilityBills,
@@ -715,7 +739,10 @@ export const PropMAKProvider: React.FC<{ children: ReactNode }> = ({ children })
       createTicket,
       deleteTicket,
       depositCashDrawer,
-      ingestWhatsAppMessage
+      ingestWhatsAppMessage,
+      addAsset,
+      updateAsset,
+      deleteAsset
     }}>
       {children}
     </PropMAKContext.Provider>

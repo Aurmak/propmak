@@ -10,7 +10,8 @@ import {
   UserCheck, 
   MessageSquare,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Package
 } from 'lucide-react';
 import { usePropMAK } from '../../context/PropMAKContext';
 
@@ -43,6 +44,11 @@ export const Sidebar: React.FC = () => {
       id: 'finance',
       label: 'Finance & Rent Roll',
       icon: Wallet
+    },
+    {
+      id: 'assets',
+      label: 'Asset Inventory',
+      icon: Package
     }
   ];
 

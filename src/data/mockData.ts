@@ -8,7 +8,8 @@ import {
   CashDrawerState,
   WhatsAppIngestedMessage,
   Stakeholder,
-  Contractor
+  Contractor,
+  AssetItem
 } from '../types';
 
 export const mockUnits: Unit[] = [
@@ -2741,5 +2742,119 @@ export const mockContractors: Contractor[] = [
     standardRate: 'Rs. 2,500 / lock + parts',
     availability: 'AVAILABLE',
     cnicNumber: '42000-8877665-9'
+  }
+];
+
+export const mockAssets: AssetItem[] = [
+  // ---- Grand Oak Tower, Apt 402 (unit_101) ----
+  {
+    id: 'ast_001', unitId: 'unit_101', unitName: 'Apt 402 (3-Bed Luxury)', propertyName: 'Grand Oak Tower',
+    name: 'Split AC 1.5 Ton', category: 'APPLIANCE', make: 'Dawlance Inverter', serialNumber: 'DWL-AC-884421',
+    purchaseDate: '2023-06-15', purchasePrice: 95000,
+    moveInCondition: 'EXCELLENT', moveInNotes: 'Brand new, installed before tenancy',
+    replacementCost: 110000, status: 'ACTIVE', createdAt: '2024-01-10'
+  },
+  {
+    id: 'ast_002', unitId: 'unit_101', unitName: 'Apt 402 (3-Bed Luxury)', propertyName: 'Grand Oak Tower',
+    name: 'Water Motor (Donki Pump)', category: 'APPLIANCE', make: 'Pak Pumps 0.5 HP', serialNumber: 'PP-5500-KHI',
+    purchaseDate: '2022-03-10', purchasePrice: 22000,
+    moveInCondition: 'GOOD', moveInNotes: 'Working fine, minor surface rust on casing',
+    replacementCost: 28000, status: 'ACTIVE', createdAt: '2024-01-10'
+  },
+  {
+    id: 'ast_003', unitId: 'unit_101', unitName: 'Apt 402 (3-Bed Luxury)', propertyName: 'Grand Oak Tower',
+    name: 'Gas Geyser', category: 'APPLIANCE', make: 'Rinnai 12L', serialNumber: 'RIN-G-229911',
+    purchaseDate: '2023-01-20', purchasePrice: 32000,
+    moveInCondition: 'GOOD',
+    replacementCost: 38000, status: 'ACTIVE', createdAt: '2024-01-10'
+  },
+  {
+    id: 'ast_004', unitId: 'unit_101', unitName: 'Apt 402 (3-Bed Luxury)', propertyName: 'Grand Oak Tower',
+    name: 'Ceiling Fan (Master Bed)', category: 'APPLIANCE', make: 'Pak Fan Royal', serialNumber: 'PF-R-44512',
+    purchaseDate: '2022-09-01', purchasePrice: 8500,
+    moveInCondition: 'GOOD',
+    replacementCost: 10000, status: 'ACTIVE', createdAt: '2024-01-10'
+  },
+  {
+    id: 'ast_005', unitId: 'unit_101', unitName: 'Apt 402 (3-Bed Luxury)', propertyName: 'Grand Oak Tower',
+    name: 'Main Door Lock (Digital)', category: 'FIXTURE', make: 'Yale Smart Lock',
+    purchaseDate: '2023-06-15', purchasePrice: 18000,
+    moveInCondition: 'EXCELLENT',
+    replacementCost: 22000, status: 'ACTIVE', createdAt: '2024-01-10'
+  },
+  // ---- Grand Oak Tower, Apt 308 (unit_102) ----
+  {
+    id: 'ast_006', unitId: 'unit_102', unitName: 'Apt 308 (2-Bed)', propertyName: 'Grand Oak Tower',
+    name: 'Split AC 1 Ton', category: 'APPLIANCE', make: 'Haier HSU-12', serialNumber: 'HAI-AC-771234',
+    purchaseDate: '2021-05-10', purchasePrice: 72000,
+    moveInCondition: 'FAIR', moveInNotes: 'AC remote missing, unit working correctly',
+    moveOutCondition: 'POOR', moveOutNotes: 'Compressor making loud noise, gas needs refill',
+    replacementCost: 85000, status: 'DAMAGED', createdAt: '2023-08-15'
+  },
+  {
+    id: 'ast_007', unitId: 'unit_102', unitName: 'Apt 308 (2-Bed)', propertyName: 'Grand Oak Tower',
+    name: 'Exhaust Fan (Kitchen)', category: 'APPLIANCE', make: 'Asia Fan',
+    purchaseDate: '2021-05-10', purchasePrice: 3500,
+    moveInCondition: 'GOOD',
+    moveOutCondition: 'POOR', moveOutNotes: 'Blade broken',
+    replacementCost: 4500, status: 'DAMAGED', createdAt: '2023-08-15'
+  },
+  {
+    id: 'ast_008', unitId: 'unit_102', unitName: 'Apt 308 (2-Bed)', propertyName: 'Grand Oak Tower',
+    name: 'Wardrobe (Built-in, Bedroom 1)', category: 'FURNITURE', make: 'Sheesham Wood',
+    purchaseDate: '2020-01-01', purchasePrice: 45000,
+    moveInCondition: 'GOOD', moveInNotes: 'Minor scratches on door panels',
+    replacementCost: 60000, status: 'ACTIVE', createdAt: '2023-08-15'
+  },
+  // ---- Sunrise Heights, Flat 5A (unit_103) ----
+  {
+    id: 'ast_009', unitId: 'unit_103', unitName: 'Flat 5A (3-Bed Corner)', propertyName: 'Sunrise Heights',
+    name: 'Split AC 2 Ton (Living Room)', category: 'APPLIANCE', make: 'Gree Inverter',
+    purchaseDate: '2022-07-20', purchasePrice: 130000,
+    moveInCondition: 'EXCELLENT',
+    replacementCost: 145000, status: 'ACTIVE', createdAt: '2024-03-01'
+  },
+  {
+    id: 'ast_010', unitId: 'unit_103', unitName: 'Flat 5A (3-Bed Corner)', propertyName: 'Sunrise Heights',
+    name: 'Overhead Water Tank (500 Gal)', category: 'FIXTURE', make: 'National Poly',
+    purchaseDate: '2019-04-01', purchasePrice: 25000,
+    moveInCondition: 'GOOD',
+    replacementCost: 32000, status: 'ACTIVE', createdAt: '2024-03-01'
+  },
+  {
+    id: 'ast_011', unitId: 'unit_103', unitName: 'Flat 5A (3-Bed Corner)', propertyName: 'Sunrise Heights',
+    name: 'Gas Geyser (Bathroom 2)', category: 'APPLIANCE', make: 'Super Asia SA-522',
+    purchaseDate: '2022-07-20', purchasePrice: 24000,
+    moveInCondition: 'EXCELLENT',
+    replacementCost: 28000, status: 'ACTIVE', createdAt: '2024-03-01'
+  },
+  {
+    id: 'ast_012', unitId: 'unit_103', unitName: 'Flat 5A (3-Bed Corner)', propertyName: 'Sunrise Heights',
+    name: 'Kitchen Chimney Hood', category: 'APPLIANCE', make: 'Faber 60cm',
+    purchaseDate: '2022-07-20', purchasePrice: 42000,
+    moveInCondition: 'EXCELLENT',
+    replacementCost: 48000, status: 'ACTIVE', createdAt: '2024-03-01'
+  },
+  // ---- Commercial unit ----
+  {
+    id: 'ast_013', unitId: 'unit_201', unitName: 'Shop GF-3', propertyName: 'Al-Hafeez Plaza',
+    name: 'Security Shutter (Roll-up)', category: 'FIXTURE', make: 'National Shutters',
+    purchaseDate: '2020-11-01', purchasePrice: 65000,
+    moveInCondition: 'GOOD', moveInNotes: 'Electric motor works, manual override tested',
+    replacementCost: 80000, status: 'ACTIVE', createdAt: '2024-06-01'
+  },
+  {
+    id: 'ast_014', unitId: 'unit_201', unitName: 'Shop GF-3', propertyName: 'Al-Hafeez Plaza',
+    name: 'Split AC 1.5 Ton (Shop)', category: 'APPLIANCE', make: 'Pel InverOn',
+    purchaseDate: '2021-04-15', purchasePrice: 88000,
+    moveInCondition: 'FAIR', moveInNotes: 'Gas was refilled before handover',
+    replacementCost: 98000, status: 'ACTIVE', createdAt: '2024-06-01'
+  },
+  {
+    id: 'ast_015', unitId: 'unit_201', unitName: 'Shop GF-3', propertyName: 'Al-Hafeez Plaza',
+    name: 'Ceiling Light Fitting (x4)', category: 'FITTING', make: 'Philips LED Panel',
+    purchaseDate: '2021-04-15', purchasePrice: 12000,
+    moveInCondition: 'EXCELLENT',
+    replacementCost: 14000, status: 'MISSING', createdAt: '2024-06-01'
   }
 ];

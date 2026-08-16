@@ -257,3 +257,33 @@ export interface Contractor {
   notes?: string;
 }
 
+export type AssetCategory = 'APPLIANCE' | 'FIXTURE' | 'FURNITURE' | 'FITTING';
+export type AssetCondition = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR';
+export type AssetStatus = 'ACTIVE' | 'DAMAGED' | 'MISSING' | 'DISPOSED';
+
+export interface AssetItem {
+  id: string;
+  unitId: string;
+  unitName: string;
+  propertyName: string;
+
+  name: string;
+  category: AssetCategory;
+  make?: string;
+  serialNumber?: string;
+
+  purchaseDate?: string;
+  purchasePrice?: number;
+
+  moveInCondition: AssetCondition;
+  moveInNotes?: string;
+  moveInPhotoUrl?: string;
+
+  moveOutCondition?: AssetCondition;
+  moveOutNotes?: string;
+  moveOutPhotoUrl?: string;
+
+  replacementCost: number;
+  status: AssetStatus;
+  createdAt: string;
+}
