@@ -19,6 +19,8 @@ import { usePropMAK } from '../../context/PropMAKContext';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
+import { ComboBox } from '../ui/ComboBox';
+import { TogglePills } from '../ui/TogglePills';
 import {
   Sheet,
   SheetContent,
@@ -126,15 +128,18 @@ const AddAssetModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isO
           {/* Unit */}
           <div>
             <label className="block font-bold text-slate-800 mb-1.5">Unit</label>
-            <select
+            <ComboBox
+              options={units.map(u => ({
+                value: u.id,
+                label: u.unitNumber,
+                sublabel: u.propertyName,
+                group: u.propertyName
+              }))}
               value={unitId}
-              onChange={e => setUnitId(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-            >
-              {units.map(u => (
-                <option key={u.id} value={u.id}>{u.unitNumber} — {u.propertyName}</option>
-              ))}
-            </select>
+              onChange={setUnitId}
+              placeholder="Select a unit…"
+              searchPlaceholder="Search by unit or property…"
+            />
           </div>
 
           {/* Name + Category */}
@@ -145,15 +150,17 @@ const AddAssetModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isO
             </div>
             <div>
               <label className="block font-bold text-slate-800 mb-1.5">Category</label>
-              <select
+              <TogglePills
+                options={[
+                  { value: 'APPLIANCE', label: 'Appliance' },
+                  { value: 'FIXTURE', label: 'Fixture' },
+                  { value: 'FURNITURE', label: 'Furniture' },
+                  { value: 'FITTING', label: 'Fitting' },
+                ]}
                 value={category}
-                onChange={e => setCategory(e.target.value as AssetCategory)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-              >
-                {(Object.keys(CATEGORY_LABELS) as AssetCategory[]).map(c => (
-                  <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
-                ))}
-              </select>
+                onChange={val => setCategory(val as AssetCategory)}
+                columns={2}
+              />
             </div>
           </div>
 

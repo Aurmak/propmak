@@ -14,6 +14,8 @@ import {
 import { Unit, UtilityBillRecord, UtilityType } from '../../types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { ComboBox } from '../ui/ComboBox';
+import { TogglePills } from '../ui/TogglePills';
 
 interface AddUtilityBillModalProps {
   units: Unit[];
@@ -90,17 +92,18 @@ export const AddUtilityBillModal: React.FC<AddUtilityBillModalProps> = ({
           {/* Target Unit */}
           <div>
             <label className="block text-slate-700 font-bold mb-1">Target Property / Unit *</label>
-            <select
+            <ComboBox
+              options={units.map(u => ({
+                value: u.id,
+                label: u.unitNumber,
+                sublabel: `${u.propertyName} — ${u.renter?.name || 'Vacant'}`,
+                group: u.propertyName
+              }))}
               value={selectedUnitId}
-              onChange={(e) => setSelectedUnitId(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-slate-800"
-            >
-              {units.map(u => (
-                <option key={u.id} value={u.id}>
-                  {u.unitNumber} ({u.propertyName}) — {u.renter?.name || 'Vacant'}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedUnitId}
+              placeholder="Select a unit…"
+              searchPlaceholder="Search by unit, property or tenant…"
+            />
           </div>
 
           {/* Utility Type & Billing Month */}
@@ -172,15 +175,16 @@ export const AddUtilityBillModal: React.FC<AddUtilityBillModalProps> = ({
 
             <div>
               <label className="block text-slate-700 font-bold mb-1">Clearance Status</label>
-              <select
+              <TogglePills
+                options={[
+                  { value: 'PENDING', label: 'Pending' },
+                  { value: 'PAID', label: 'Paid & Verified' },
+                  { value: 'OVERDUE', label: 'Overdue' },
+                ]}
                 value={paidStatus}
-                onChange={(e) => setPaidStatus(e.target.value as any)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-slate-800"
-              >
-                <option value="PENDING">Pending Payment / Upload</option>
-                <option value="PAID">Paid & Verified</option>
-                <option value="OVERDUE">Overdue Arrears</option>
-              </select>
+                onChange={val => setPaidStatus(val as 'PENDING' | 'PAID' | 'OVERDUE')}
+                columns={3}
+              />
             </div>
           </div>
 

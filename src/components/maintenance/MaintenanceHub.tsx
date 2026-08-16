@@ -50,6 +50,8 @@ import {
 } from '../ui/sheet';
 import { EmptyState } from '../ui/EmptyState';
 import { AssignContractorModal } from './AssignContractorModal';
+import { ComboBox } from '../ui/ComboBox';
+import { TogglePills } from '../ui/TogglePills';
 
 interface MaintenanceHubProps {
   onOpenWhatsAppWithMessage?: (msg: string, phone?: string) => void;
@@ -701,17 +703,18 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
               {/* Unit Selection */}
               <div>
                 <label className="block text-slate-700 font-bold mb-1.5 text-sm">Target Unit / Demise</label>
-                <select
+                <ComboBox
+                  options={units.map(u => ({
+                    value: u.id,
+                    label: u.unitNumber,
+                    sublabel: u.propertyName,
+                    group: u.propertyName
+                  }))}
                   value={newUnitId}
-                  onChange={(e) => setNewUnitId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 font-bold text-sm focus:outline-none focus:border-slate-800 cursor-pointer"
-                >
-                  {units.map(u => (
-                    <option key={u.id} value={u.id}>
-                      {u.unitNumber} — {u.propertyName}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setNewUnitId}
+                  placeholder="Select a unit…"
+                  searchPlaceholder="Search by unit or property…"
+                />
               </div>
 
               {/* Title */}
@@ -727,35 +730,37 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
                 />
               </div>
 
-              {/* Category & Urgency */}
+                   {/* Category & Urgency */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1.5 text-sm">Trade Category</label>
-                  <select
+                  <TogglePills
+                    options={[
+                      { value: 'PLUMBER_PUMP_GEYSER', label: 'Plumbing' },
+                      { value: 'ELECTRICIAN_UPS', label: 'Electrical' },
+                      { value: 'AC_TECHNICIAN', label: 'HVAC / AC' },
+                      { value: 'PAINTER_SEEPAGE', label: 'Painter' },
+                      { value: 'CARPENTER_LOCKS', label: 'Carpenter' },
+                      { value: 'GENERAL_HANDYMAN', label: 'General' },
+                    ]}
                     value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value as TradeCategory)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 font-bold text-sm focus:outline-none focus:border-slate-800 cursor-pointer"
-                  >
-                    <option value="PLUMBER_PUMP_GEYSER">Plumbing & Water Pump</option>
-                    <option value="ELECTRICIAN_UPS">Electrical & Power DB</option>
-                    <option value="AC_TECHNICIAN">HVAC & AC Specialist</option>
-                    <option value="PAINTER_SEEPAGE">Painter & Seepage</option>
-                    <option value="CARPENTER_LOCKS">Carpenter & Locks</option>
-                    <option value="GENERAL_HANDYMAN">General Maintenance</option>
-                  </select>
+                    onChange={val => setNewCategory(val as TradeCategory)}
+                    columns={3}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-slate-700 font-bold mb-1.5 text-sm">Priority</label>
-                  <select
+                  <TogglePills
+                    options={[
+                      { value: 'LOW', label: 'Low' },
+                      { value: 'STANDARD', label: 'Standard' },
+                      { value: 'EMERGENCY', label: '🚨 Emergency' },
+                    ]}
                     value={newUrgency}
-                    onChange={(e) => setNewUrgency(e.target.value as TicketUrgency)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 font-bold text-sm focus:outline-none focus:border-slate-800 cursor-pointer"
-                  >
-                    <option value="STANDARD">Standard</option>
-                    <option value="EMERGENCY">🚨 Emergency</option>
-                    <option value="LOW">Low</option>
-                  </select>
+                    onChange={val => setNewUrgency(val as TicketUrgency)}
+                    columns={3}
+                  />
                 </div>
               </div>
 

@@ -19,6 +19,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Card } from '../ui/card';
+import { ComboBox } from '../ui/ComboBox';
 
 interface DepositSettlementModalProps {
   units: Unit[];
@@ -123,19 +124,20 @@ export const DepositSettlementModal: React.FC<DepositSettlementModalProps> = ({
           {/* Target Tenancy Selection */}
           <div className="space-y-1.5">
             <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px]">
-              1. Select Vacating Unit & Tenant
+              1. Select Vacating Unit &amp; Tenant
             </label>
-            <select
+            <ComboBox
+              options={rentedUnits.map(u => ({
+                value: u.id,
+                label: u.unitNumber,
+                sublabel: `${u.propertyName} — ${u.renter?.name || 'Occupant'}`,
+                group: u.propertyName
+              }))}
               value={selectedUnitId}
-              onChange={(e) => handleUnitChange(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-slate-800"
-            >
-              {rentedUnits.map(u => (
-                <option key={u.id} value={u.id}>
-                  {u.unitNumber} ({u.propertyName}) — Tenant: {u.renter?.name || 'Occupant'}
-                </option>
-              ))}
-            </select>
+              onChange={handleUnitChange}
+              placeholder="Select vacating unit…"
+              searchPlaceholder="Search by unit, property or tenant…"
+            />
           </div>
 
           {/* Held Deposit Snapshot */}

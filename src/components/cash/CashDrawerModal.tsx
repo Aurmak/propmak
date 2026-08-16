@@ -15,6 +15,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Badge } from '../ui/badge';
+import { ComboBox } from '../ui/ComboBox';
 
 interface CashDrawerModalProps {
   onOpenWhatsAppWithMessage?: (msg: string, phone?: string) => void;
@@ -109,17 +110,18 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
             {/* Unit Picker */}
             <div>
               <label className="block text-slate-700 font-bold mb-1 text-xs">Select Property / Unit</label>
-              <select
+              <ComboBox
+                options={units.map(u => ({
+                  value: u.id,
+                  label: u.unitNumber,
+                  sublabel: u.propertyName,
+                  group: u.propertyName
+                }))}
                 value={selectedUnitId}
-                onChange={(e) => setSelectedUnitId(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-medium focus:outline-none focus:border-slate-800"
-              >
-                {units.map(u => (
-                  <option key={u.id} value={u.id}>
-                    {u.unitNumber} — {u.propertyName}
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedUnitId}
+                placeholder="Select a unit…"
+                searchPlaceholder="Search by unit or property…"
+              />
             </div>
 
             {/* Amount */}
