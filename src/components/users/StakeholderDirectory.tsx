@@ -1,23 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Users, 
-  UserPlus, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Building2, 
-  ShieldCheck, 
-  Plus, 
-  X,
+import {
+  Users,
+  UserPlus,
+  MapPin,
+  ShieldCheck,
   Search,
-  Check,
   Edit2,
-  Trash2,
-  ArrowRight,
-  MessageSquare,
-  FileText
+  Trash2
 } from 'lucide-react';
 import { usePropMAK } from '../../context/PropMAKContext';
 import { Stakeholder } from '../../types';
@@ -26,34 +17,21 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
-import { 
-  Table, 
-  TableHeader, 
-  TableBody, 
-  TableRow, 
-  TableHead, 
-  TableCell 
-} from '../ui/table';
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetDescription 
-} from '../ui/sheet';
 import { EmptyState } from '../ui/EmptyState';
 import { EditStakeholderModal } from './EditStakeholderModal';
+import { cn } from '@/lib/utils';
+
+const HEADING = '#1B2559';
 
 export const StakeholderDirectory: React.FC<{ onOpenWhatsApp?: (msg: string, phone?: string) => void }> = ({
   onOpenWhatsApp
 }) => {
-  const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder, units } = usePropMAK();
+  const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder, units, searchQuery, setSearchQuery } = usePropMAK();
 
   const [filterRole, setFilterRole] = useState<string>('ALL');
-  const [search, setSearch] = useState<string>('');
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [editingStakeholder, setEditingStakeholder] = useState<Stakeholder | null>(null);
-  const [activeInspectorStakeholder, setActiveInspectorStakeholder] = useState<Stakeholder | null>(null);
+  const [selectedStakeholderId, setSelectedStakeholderId] = useState<string | null>(null);
 
   // New User Form State
   const [newName, setNewName] = useState('');
@@ -64,8 +42,8 @@ export const StakeholderDirectory: React.FC<{ onOpenWhatsApp?: (msg: string, pho
   const [newNotes, setNewNotes] = useState('');
 
   const filteredStakeholders = stakeholders.filter(s => {
-    if (search) {
-      const q = search.toLowerCase();
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
       const match = s.name.toLowerCase().includes(q) ||
         s.phone.toLowerCase().includes(q) ||
         s.location.toLowerCase().includes(q) ||
@@ -79,6 +57,8 @@ export const StakeholderDirectory: React.FC<{ onOpenWhatsApp?: (msg: string, pho
     if (filterRole === 'STAFF') return s.role === 'COLLECTOR';
     return true;
   });
+
+  const selectedStakeholder = filteredStakeholders.find(s => s.id === selectedStakeholderId) || filteredStakeholders[0] || null;
 
   const getRoleBadge = (role: Stakeholder['role']) => {
     switch (role) {
@@ -128,14 +108,14 @@ export const StakeholderDirectory: React.FC<{ onOpenWhatsApp?: (msg: string, pho
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-xl font-bold" style={{ color: HEADING }}>
                 Stakeholder & User Directory
               </h1>
               <Badge variant="secondary">
                 {stakeholders.length} Registered Users
               </Badge>
             </div>
-            <p className="text-sm text-slate-600 font-medium mt-1">
+            <p className="text-[13px] text-slate-500 mt-1">
               Centralized stakeholder registry: Overseas & local landlords, active tenants, occupiers, and agency field collectors
             </p>
           </div>
@@ -145,7 +125,7 @@ export const StakeholderDirectory: React.FC<{ onOpenWhatsApp?: (msg: string, pho
             onClick={() => setIsAddUserModalOpen(true)}
             className="font-bold text-sm"
           >
-            <UserPlus className="w-4 h-4 text-amber-400 mr-1.5" />
+            <UserPlus className="w-4 h-4 mr-1.5" />
             <span>Add New User</span>
           </Button>
         </div>
@@ -154,24 +134,25 @@ export const StakeholderDirectory: React.FC<{ onOpenWhatsApp?: (msg: string, pho
       {/* Filter & Search Toolbar */}
       <Card className="p-4 space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          
+
           {/* Role Filter Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto text-sm">
+          <div className="inline-flex flex-wrap items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200">
             {[
               { id: 'ALL', label: `All Users (${stakeholders.length})` },
               { id: 'LANDLORD', label: 'Landlords & Owners' },
               { id: 'TENANT', label: 'Tenants & Residents' },
               { id: 'STAFF', label: 'Agency Field Staff' }
             ].map(tab => (
-              <Button
+              <button
                 key={tab.id}
-                size="sm"
-                variant={filterRole === tab.id ? 'default' : 'ghost'}
                 onClick={() => setFilterRole(tab.id)}
-                className="h-9 px-3.5 text-sm font-bold whitespace-nowrap cursor-pointer"
+                className={cn(
+                  'px-3.5 py-1.5 rounded-lg text-[13px] whitespace-nowrap transition-colors cursor-pointer',
+                  filterRole === tab.id ? 'bg-white text-blue-600 shadow-sm font-semibold' : 'text-slate-500 font-medium hover:text-slate-700'
+                )}
               >
                 {tab.label}
-              </Button>
+              </button>
             ))}
           </div>
 
@@ -180,8 +161,8 @@ export const StakeholderDirectory: React.FC<{ onOpenWhatsApp?: (msg: string, pho
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
               type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search user name, phone, city..."
               className="pl-9 h-9 text-sm bg-white font-medium"
             />
@@ -190,7 +171,7 @@ export const StakeholderDirectory: React.FC<{ onOpenWhatsApp?: (msg: string, pho
         </div>
       </Card>
 
-      {/* Streamlined 5-Column Stakeholders Table */}
+      {/* Master-Detail: Stakeholder List + Profile Inspector */}
       {filteredStakeholders.length === 0 ? (
         <EmptyState
           icon={Users}
@@ -199,252 +180,203 @@ export const StakeholderDirectory: React.FC<{ onOpenWhatsApp?: (msg: string, pho
           actionLabel="Reset User Filter"
           onAction={() => {
             setFilterRole('ALL');
-            setSearch('');
+            setSearchQuery('');
           }}
         />
       ) : (
-        <Card className="overflow-hidden shadow-sm">
-          <Table aria-label="Stakeholders Directory Table">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-bold text-sm">Stakeholder & Role</TableHead>
-                <TableHead className="font-bold text-sm">Contact Phone</TableHead>
-                <TableHead className="font-bold text-sm">Location / Base</TableHead>
-                <TableHead className="font-bold text-sm">Portfolio Demise</TableHead>
-                <TableHead className="text-right font-bold text-sm">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <Card className="overflow-hidden">
+          <div className="flex flex-col sm:flex-row" style={{ minHeight: '560px' }}>
+
+            {/* LEFT: stakeholder list */}
+            <div className="w-full sm:w-[340px] shrink-0 border-b sm:border-b-0 sm:border-r border-slate-100 overflow-y-auto" style={{ maxHeight: '720px' }}>
               {filteredStakeholders.map((s) => {
+                const isSelected = selectedStakeholder?.id === s.id;
                 const ownedUnits = units.filter(u => u.owner.id === s.id || u.owner.name === s.name);
                 const rentedUnits = units.filter(u => u.renter?.id === s.id || u.renter?.name === s.name);
 
                 return (
-                  <TableRow 
-                    key={s.id} 
-                    className="cursor-pointer hover:bg-slate-50 transition-colors"
-                    onClick={() => setActiveInspectorStakeholder(s)}
+                  <button
+                    key={s.id}
+                    onClick={() => setSelectedStakeholderId(s.id)}
+                    className={cn(
+                      'w-full text-left px-4 py-3.5 border-b border-l-4 border-slate-100 cursor-pointer transition-colors block',
+                      isSelected ? 'bg-blue-50 border-l-blue-600' : 'border-l-transparent hover:bg-slate-50'
+                    )}
                   >
-                    
-                    {/* Column 1: Stakeholder & Role */}
-                    <TableCell>
-                      <span className="font-bold text-slate-900 text-sm block">{s.name}</span>
-                      <div className="mt-1">
-                        {getRoleBadge(s.role)}
-                      </div>
-                    </TableCell>
-
-                    {/* Column 2: Contact Phone */}
-                    <TableCell className="font-mono text-sm font-semibold text-slate-900">
-                      {s.phone}
-                    </TableCell>
-
-                    {/* Column 3: Location */}
-                    <TableCell>
-                      <span className="text-sm text-slate-700 font-medium flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span>{s.location}</span>
-                      </span>
-                    </TableCell>
-
-                    {/* Column 4: Associated Demise */}
-                    <TableCell>
-                      {ownedUnits.length > 0 ? (
-                        <span className="text-xs font-bold text-blue-900 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                          {ownedUnits.length} Owned Unit{ownedUnits.length > 1 ? 's' : ''}
-                        </span>
-                      ) : rentedUnits.length > 0 ? (
-                        <span className="text-xs font-bold text-emerald-900 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                          {rentedUnits[0].unitNumber}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-slate-400 font-medium">—</span>
+                    <div className="text-[14px] font-semibold truncate" style={{ color: isSelected ? '#2563EB' : HEADING }}>{s.name}</div>
+                    <div className="text-[12px] text-slate-500 mt-0.5 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{s.location} · {s.phone}</span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                      {getRoleBadge(s.role)}
+                      {ownedUnits.length > 0 && (
+                        <Badge variant="blue">{ownedUnits.length} Owned Unit{ownedUnits.length > 1 ? 's' : ''}</Badge>
                       )}
-                    </TableCell>
-
-                    {/* Column 5: Action */}
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="font-bold text-sm h-8 px-3"
-                        onClick={() => setActiveInspectorStakeholder(s)}
-                      >
-                        <span>View Profile</span>
-                        <ArrowRight className="w-3.5 h-3.5 ml-1 text-amber-500" />
-                      </Button>
-                    </TableCell>
-
-                  </TableRow>
+                      {ownedUnits.length === 0 && rentedUnits.length > 0 && (
+                        <Badge variant="emerald">{rentedUnits[0].unitNumber}</Badge>
+                      )}
+                    </div>
+                  </button>
                 );
               })}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
-
-      {/* Slide-Over Stakeholder Inspector Drawer (`Sheet`) */}
-      <Sheet open={!!activeInspectorStakeholder} onOpenChange={(open) => { if (!open) setActiveInspectorStakeholder(null); }}>
-        {activeInspectorStakeholder && (
-          <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-            
-            <SheetHeader className="pb-4 border-b border-slate-200">
-              <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                {getRoleBadge(activeInspectorStakeholder.role)}
-                <Badge variant="secondary">
-                  <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" />
-                  <span>Verified Profile</span>
-                </Badge>
-              </div>
-              <SheetTitle className="text-xl font-black text-slate-900">{activeInspectorStakeholder.name}</SheetTitle>
-              <SheetDescription className="flex items-center gap-1.5 text-slate-700 font-medium text-sm mt-1">
-                <MapPin className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>{activeInspectorStakeholder.location} • {activeInspectorStakeholder.phone}</span>
-              </SheetDescription>
-            </SheetHeader>
-
-            <div className="space-y-6 my-5 text-sm text-slate-800">
-              
-              {/* Profile Details Card */}
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Contact Information</span>
-                
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-slate-600 font-medium block">Phone / Mobile:</span>
-                    <strong className="text-slate-900 font-mono block">{activeInspectorStakeholder.phone}</strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-600 font-medium block">Email Address:</span>
-                    <strong className="text-slate-900 block">{activeInspectorStakeholder.email || 'Not on file'}</strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-600 font-medium block">Primary Role:</span>
-                    <strong className="text-slate-900 block">{activeInspectorStakeholder.role.replace(/_/g, ' ')}</strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-600 font-medium block">City / Base:</span>
-                    <strong className="text-slate-900 block">{activeInspectorStakeholder.location}</strong>
-                  </div>
-                </div>
-
-                {activeInspectorStakeholder.notes && (
-                  <div className="pt-3 border-t border-slate-200">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                      Management Notes & Special Instructions
-                    </span>
-                    <p className="text-slate-800 text-sm leading-relaxed font-medium bg-white p-3 rounded-xl border border-slate-200">
-                      {activeInspectorStakeholder.notes}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Associated Portfolio Properties */}
-              {(() => {
-                const owned = units.filter(u => u.owner.id === activeInspectorStakeholder.id || u.owner.name === activeInspectorStakeholder.name);
-                const rented = units.filter(u => u.renter?.id === activeInspectorStakeholder.id || u.renter?.name === activeInspectorStakeholder.name);
-
-                return (
-                  <div className="space-y-3">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                      Associated Property Assets ({owned.length + rented.length} Units)
-                    </span>
-                    
-                    {owned.length > 0 && (
-                      <div className="space-y-2">
-                        <span className="text-xs font-bold text-blue-900 block">Owned Units (Landlord):</span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {owned.map(u => (
-                            <div key={u.id} className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-sm">
-                              <span className="font-bold text-blue-950 block">{u.unitNumber}</span>
-                              <span className="text-xs text-blue-800 block">{u.propertyName}</span>
-                              <span className="text-xs font-bold text-slate-900 block mt-1">Rent: Rs. {u.monthlyRent.toLocaleString()}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {rented.length > 0 && (
-                      <div className="space-y-2">
-                        <span className="text-xs font-bold text-emerald-900 block">Current Tenancy (Resident):</span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {rented.map(u => (
-                            <div key={u.id} className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl text-sm">
-                              <span className="font-bold text-emerald-950 block">{u.unitNumber}</span>
-                              <span className="text-xs text-emerald-800 block">{u.propertyName}</span>
-                              <span className="text-xs font-bold text-slate-900 block mt-1">Rent: Rs. {u.monthlyRent.toLocaleString()}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {owned.length === 0 && rented.length === 0 && (
-                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-slate-500 text-sm italic">
-                        No currently linked properties in the portfolio.
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 pt-3 border-t border-slate-200">
-                <Button
-                  variant="default"
-                  className="w-full sm:flex-1 font-black text-base h-12 shadow-sm"
-                  onClick={() => {
-                    setEditingStakeholder(activeInspectorStakeholder);
-                    setActiveInspectorStakeholder(null);
-                  }}
-                >
-                  <Edit2 className="w-5 h-5 mr-2 text-amber-400" />
-                  <span>Edit Stakeholder Record</span>
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  className="w-full sm:w-auto text-rose-600 hover:text-rose-700 hover:bg-rose-50 font-bold text-sm h-12"
-                  onClick={() => {
-                    if (confirm(`Remove stakeholder ${activeInspectorStakeholder.name} from directory?`)) {
-                      deleteStakeholder(activeInspectorStakeholder.id);
-                      setActiveInspectorStakeholder(null);
-                    }
-                  }}
-                >
-                  <Trash2 className="w-4 h-4 mr-1.5" />
-                  <span>Delete</span>
-                </Button>
-              </div>
-
             </div>
 
-          </SheetContent>
-        )}
-      </Sheet>
+            {/* RIGHT: detail panel */}
+            <div className="flex-1 min-w-0 p-6 overflow-y-auto" style={{ maxHeight: '720px' }}>
+              {selectedStakeholder && (
+                <div className="space-y-6">
+
+                  {/* Header */}
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                      {getRoleBadge(selectedStakeholder.role)}
+                      <Badge variant="secondary">
+                        <ShieldCheck className="w-3.5 h-3.5 mr-1" />
+                        <span>Verified Profile</span>
+                      </Badge>
+                    </div>
+                    <h2 className="text-lg font-bold" style={{ color: HEADING }}>{selectedStakeholder.name}</h2>
+                    <p className="text-[13px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      {selectedStakeholder.location} • {selectedStakeholder.phone}
+                    </p>
+                  </div>
+
+                  <div className="h-px bg-slate-100" />
+
+                  {/* Contact information */}
+                  <div>
+                    <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-wide mb-2.5">Contact Information</div>
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[13px]">
+                      <div><span className="text-slate-400 block">Phone / Mobile</span><span className="font-medium font-mono" style={{ color: HEADING }}>{selectedStakeholder.phone}</span></div>
+                      <div><span className="text-slate-400 block">Email Address</span><span className="font-medium" style={{ color: HEADING }}>{selectedStakeholder.email || 'Not on file'}</span></div>
+                      <div><span className="text-slate-400 block">Primary Role</span><span className="font-medium" style={{ color: HEADING }}>{selectedStakeholder.role.replace(/_/g, ' ')}</span></div>
+                      <div><span className="text-slate-400 block">City / Base</span><span className="font-medium" style={{ color: HEADING }}>{selectedStakeholder.location}</span></div>
+                    </div>
+
+                    {selectedStakeholder.notes && (
+                      <div className="mt-3.5">
+                        <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-wide mb-1">
+                          Management Notes &amp; Special Instructions
+                        </div>
+                        <p className="text-slate-700 text-[13px] leading-relaxed font-medium rounded-xl p-3" style={{ background: '#EEF1FA' }}>
+                          {selectedStakeholder.notes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="h-px bg-slate-100" />
+
+                  {/* Associated Portfolio Properties */}
+                  {(() => {
+                    const owned = units.filter(u => u.owner.id === selectedStakeholder.id || u.owner.name === selectedStakeholder.name);
+                    const rented = units.filter(u => u.renter?.id === selectedStakeholder.id || u.renter?.name === selectedStakeholder.name);
+
+                    return (
+                      <div>
+                        <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-wide mb-2.5">
+                          Associated Property Assets ({owned.length + rented.length} Units)
+                        </div>
+
+                        <div className="space-y-3">
+                          {owned.length > 0 && (
+                            <div className="space-y-2">
+                              <span className="text-[12px] font-semibold text-slate-400 block">Owned Units (Landlord):</span>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {owned.map(u => (
+                                  <div key={u.id} className="p-3 bg-blue-50 rounded-xl text-sm">
+                                    <span className="font-bold text-blue-900 block">{u.unitNumber}</span>
+                                    <span className="text-xs text-blue-700 block">{u.propertyName}</span>
+                                    <span className="text-xs font-bold block mt-1" style={{ color: HEADING }}>Rent: Rs. {u.monthlyRent.toLocaleString()}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {rented.length > 0 && (
+                            <div className="space-y-2">
+                              <span className="text-[12px] font-semibold text-slate-400 block">Current Tenancy (Resident):</span>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {rented.map(u => (
+                                  <div key={u.id} className="p-3 bg-emerald-50 rounded-xl text-sm">
+                                    <span className="font-bold text-emerald-900 block">{u.unitNumber}</span>
+                                    <span className="text-xs text-emerald-700 block">{u.propertyName}</span>
+                                    <span className="text-xs font-bold block mt-1" style={{ color: HEADING }}>Rent: Rs. {u.monthlyRent.toLocaleString()}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {owned.length === 0 && rented.length === 0 && (
+                            <div className="p-4 bg-slate-50 rounded-xl text-slate-500 text-sm italic">
+                              No currently linked properties in the portfolio.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <div className="h-px bg-slate-100" />
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <Button
+                      variant="default"
+                      className="w-full sm:flex-1 font-bold text-base h-12"
+                      onClick={() => setEditingStakeholder(selectedStakeholder)}
+                    >
+                      <Edit2 className="w-5 h-5 mr-2" />
+                      <span>Edit Stakeholder Record</span>
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      className="w-full sm:w-auto text-rose-600 hover:text-rose-700 hover:bg-rose-50 font-bold text-sm h-12"
+                      onClick={() => {
+                        if (confirm(`Remove stakeholder ${selectedStakeholder.name} from directory?`)) {
+                          deleteStakeholder(selectedStakeholder.id);
+                          setSelectedStakeholderId(null);
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1.5" />
+                      <span>Delete</span>
+                    </Button>
+                  </div>
+
+                </div>
+              )}
+            </div>
+
+          </div>
+        </Card>
+      )}
 
       {/* Add User Modal */}
       {isAddUserModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in text-sm text-slate-900">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            
-            <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+
+            <div className="p-5 flex items-center justify-between" style={{ background: '#EEF1FA' }}>
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
-                  <UserPlus className="w-5 h-5 text-amber-400" />
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+                  <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Add New Stakeholder</h3>
-                  <p className="text-sm text-slate-600">Register landlord, tenant, or staff member</p>
+                  <h3 className="text-base font-bold" style={{ color: HEADING }}>Add New Stakeholder</h3>
+                  <p className="text-sm text-slate-500">Register landlord, tenant, or staff member</p>
                 </div>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsAddUserModalOpen(false)}
-                className="font-bold text-sm"
+                className="font-bold text-sm bg-white"
               >
                 Close
               </Button>
@@ -494,7 +426,8 @@ export const StakeholderDirectory: React.FC<{ onOpenWhatsApp?: (msg: string, pho
                   <select
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value as Stakeholder['role'])}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 font-bold text-sm focus:outline-none focus:border-slate-800 cursor-pointer"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 cursor-pointer"
+                    style={{ color: HEADING }}
                   >
                     <option value="OWNER_OVERSEAS">Overseas Landlord</option>
                     <option value="OWNER_LOCAL">Local Landlord</option>
@@ -533,7 +466,7 @@ export const StakeholderDirectory: React.FC<{ onOpenWhatsApp?: (msg: string, pho
                   type="submit"
                   className="w-full font-bold text-base h-12"
                 >
-                  <UserPlus className="w-4 h-4 text-amber-400 mr-2" />
+                  <UserPlus className="w-4 h-4 mr-2" />
                   <span>Register Stakeholder Profile</span>
                 </Button>
               </div>

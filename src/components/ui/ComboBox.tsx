@@ -185,21 +185,21 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
                         aria-selected={isSelected}
                         onClick={() => handleSelect(opt)}
                         className={cn(
-                          'flex items-center justify-between px-3 py-2.5 cursor-pointer transition-colors text-sm',
+                          'flex items-center justify-between px-3 py-2.5 cursor-pointer transition-colors text-sm border-l-4',
                           isSelected
-                            ? 'bg-slate-900 text-white'
-                            : 'hover:bg-slate-50 text-slate-800'
+                            ? 'bg-blue-50 border-l-blue-600 text-blue-700'
+                            : 'border-l-transparent hover:bg-slate-50 text-slate-800'
                         )}
                       >
                         <span className="flex flex-col min-w-0">
                           <span className="font-semibold truncate">{opt.label}</span>
                           {opt.sublabel && (
-                            <span className={cn('text-xs truncate', isSelected ? 'text-slate-300' : 'text-slate-400')}>
+                            <span className={cn('text-xs truncate', isSelected ? 'text-blue-500' : 'text-slate-400')}>
                               {opt.sublabel}
                             </span>
                           )}
                         </span>
-                        {isSelected && <Check className="w-4 h-4 text-amber-400 shrink-0 ml-2" />}
+                        {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0 ml-2" />}
                       </li>
                     );
                   })}

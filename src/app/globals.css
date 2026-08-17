@@ -124,6 +124,12 @@ textarea:focus-visible,
   white-space: normal;
 }
 
+/* Utility face for reference codes / tabular figures (Linear-style detail) */
+.font-mono-ui {
+  font-family: var(--font-plex-mono), 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Print Optimization for Monthly Statements & Ledgers */
 @media print {
   body {

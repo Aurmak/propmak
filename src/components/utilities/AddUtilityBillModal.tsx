@@ -1,21 +1,23 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Zap, 
-  Flame, 
-  Droplets, 
-  Building, 
-  X, 
-  Check, 
-  DollarSign, 
-  Calendar 
+import {
+  Zap,
+  Flame,
+  Droplets,
+  Building,
+  X,
+  Check,
+  DollarSign,
+  Calendar
 } from 'lucide-react';
 import { Unit, UtilityBillRecord, UtilityType } from '../../types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { ComboBox } from '../ui/ComboBox';
 import { TogglePills } from '../ui/TogglePills';
+
+const HEADING = '#1B2559';
 
 interface AddUtilityBillModalProps {
   units: Unit[];
@@ -64,23 +66,23 @@ export const AddUtilityBillModal: React.FC<AddUtilityBillModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in text-slate-800">
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in text-slate-800">
+      <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+
         {/* Header */}
-        <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div className="p-5 flex items-center justify-between" style={{ background: '#EEF1FA' }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
-              <Zap className="w-5 h-5 text-amber-500" />
+            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+              <Zap className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 leading-tight">Log Monthly Utility Bill</h3>
+              <h3 className="text-base font-bold leading-tight" style={{ color: HEADING }}>Log Monthly Utility Bill</h3>
               <p className="text-xs text-slate-500">Record electricity, gas, water, or building maintenance dues</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -88,7 +90,7 @@ export const AddUtilityBillModal: React.FC<AddUtilityBillModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
-          
+
           {/* Target Unit */}
           <div>
             <label className="block text-slate-700 font-bold mb-1">Target Property / Unit *</label>
@@ -113,7 +115,7 @@ export const AddUtilityBillModal: React.FC<AddUtilityBillModalProps> = ({
               <select
                 value={utilityType}
                 onChange={(e) => setUtilityType(e.target.value as UtilityType)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-slate-800"
+                className="w-full bg-white shadow-[0_1px_4px_rgba(30,42,90,0.08)] rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
               >
                 <option value="ELECTRICITY">Electricity (K-Electric / LESCO / IESCO)</option>
                 <option value="GAS">Sui Gas (SSGC / SNGPL)</option>
@@ -161,39 +163,39 @@ export const AddUtilityBillModal: React.FC<AddUtilityBillModalProps> = ({
             </div>
           </div>
 
-          {/* Due Date & Paid Status */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-slate-700 font-bold mb-1">Due Date</label>
-              <Input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="bg-white"
-              />
-            </div>
+          {/* Due Date */}
+          <div>
+            <label className="block text-slate-700 font-bold mb-1">Due Date</label>
+            <Input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="bg-white"
+            />
+          </div>
 
-            <div>
-              <label className="block text-slate-700 font-bold mb-1">Clearance Status</label>
-              <TogglePills
-                options={[
-                  { value: 'PENDING', label: 'Pending' },
-                  { value: 'PAID', label: 'Paid & Verified' },
-                  { value: 'OVERDUE', label: 'Overdue' },
-                ]}
-                value={paidStatus}
-                onChange={val => setPaidStatus(val as 'PENDING' | 'PAID' | 'OVERDUE')}
-                columns={3}
-              />
-            </div>
+          {/* Paid Status */}
+          <div>
+            <label className="block text-slate-700 font-bold mb-1">Clearance Status</label>
+            <TogglePills
+              options={[
+                { value: 'PENDING', label: 'Pending' },
+                { value: 'PAID', label: 'Paid & Verified' },
+                { value: 'OVERDUE', label: 'Overdue' },
+              ]}
+              value={paidStatus}
+              onChange={val => setPaidStatus(val as 'PENDING' | 'PAID' | 'OVERDUE')}
+              columns={3}
+            />
           </div>
 
           {/* Footer */}
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
+              className="bg-white"
             >
               Cancel
             </Button>
@@ -201,7 +203,7 @@ export const AddUtilityBillModal: React.FC<AddUtilityBillModalProps> = ({
               type="submit"
               variant="default"
             >
-              <Check className="w-4 h-4 text-amber-400 mr-1" />
+              <Check className="w-4 h-4 mr-1" />
               <span>Save & Log Utility Bill</span>
             </Button>
           </div>

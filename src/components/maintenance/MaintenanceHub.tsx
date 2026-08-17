@@ -1,82 +1,81 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Wrench, 
-  Droplets, 
-  Zap, 
-  Wind, 
-  Paintbrush, 
-  Key, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Clock, 
-  Plus, 
-  Eye, 
-  MessageSquare, 
-  ArrowRight,
+import {
+  Wrench,
+  Droplets,
+  Zap,
+  Wind,
+  Paintbrush,
+  Key,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Plus,
+  MessageSquare,
   User,
   Building2,
   Calendar,
   Camera,
   Check,
   Smartphone,
-  Phone,
-  FileText,
   ShieldCheck,
-  DollarSign
+  Trash2
 } from 'lucide-react';
 import { usePropMAK } from '../../context/PropMAKContext';
 import { MaintenanceTicket, TradeCategory, TicketUrgency, TicketStatus } from '../../types';
-import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Badge } from '../ui/badge';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '../ui/table';
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetDescription 
-} from '../ui/sheet';
 import { EmptyState } from '../ui/EmptyState';
 import { AssignContractorModal } from './AssignContractorModal';
+import { PlannedMaintenanceCalendar } from './PlannedMaintenanceCalendar';
 import { ComboBox } from '../ui/ComboBox';
 import { TogglePills } from '../ui/TogglePills';
+import { cn } from '@/lib/utils';
 
 interface MaintenanceHubProps {
   onOpenWhatsAppWithMessage?: (msg: string, phone?: string) => void;
 }
 
+const HEADING = '#1B2559';
+const CARD = 'bg-white rounded-2xl shadow-[0_2px_16px_rgba(30,42,90,0.07)]';
+
+const URGENCY_DOT: Record<TicketUrgency, string> = {
+  EMERGENCY: 'bg-rose-500',
+  STANDARD: 'bg-amber-500',
+  LOW: 'bg-slate-300',
+};
+
+const URGENCY_LABEL: Record<TicketUrgency, string> = {
+  EMERGENCY: 'Emergency',
+  STANDARD: 'Standard',
+  LOW: 'Low priority',
+};
+
 export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
   onOpenWhatsAppWithMessage
 }) => {
-  const { 
-    tickets, 
-    units, 
-    approveTicket, 
+  const {
+    tickets,
+    units,
+    approveTicket,
     markJobFinishedByContractor,
     verifyWorkByTenant,
     closeTicketAndMakeInvoicePayable,
     assignContractorToTicket,
-    createTicket, 
-    searchQuery, 
-    setSearchQuery 
+    createTicket,
+    deleteTicket,
+    searchQuery,
+    setSearchQuery
   } = usePropMAK();
-  
+
+  const [hubTab, setHubTab] = useState<'issues' | 'planned'>('issues');
   const [stageFilter, setStageFilter] = useState<string>('ALL');
   const [tradeFilter, setTradeFilter] = useState<string>('ALL');
   const [isNewJobModalOpen, setIsNewJobModalOpen] = useState(false);
-  const [activeInspectorTicket, setActiveInspectorTicket] = useState<MaintenanceTicket | null>(null);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [assigningTicket, setAssigningTicket] = useState<MaintenanceTicket | null>(null);
 
   // New Job Form State
@@ -105,9 +104,10 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
     if (stageFilter === 'IN_PROGRESS') return t.status === 'IN_PROGRESS';
     if (stageFilter === 'VERIFICATION') return t.status === 'AWAITING_TENANT_VERIFICATION' || t.status === 'TENANT_VERIFIED';
     if (stageFilter === 'COMPLETED') return t.status === 'COMPLETED';
-    if (stageFilter === 'EMERGENCY') return t.urgency === 'EMERGENCY';
     return true;
   });
+
+  const selectedTicket = filteredTickets.find(t => t.id === selectedTicketId) || filteredTickets[0] || null;
 
   const getCategoryMeta = (cat: TradeCategory) => {
     switch (cat) {
@@ -126,40 +126,13 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
     }
   };
 
-  const getUrgencyBadge = (urgency: TicketUrgency) => {
-    switch (urgency) {
-      case 'EMERGENCY':
-        return <Badge variant="destructive" className="animate-pulse">🚨 Emergency</Badge>;
-      case 'STANDARD':
-        return <Badge variant="secondary">Standard</Badge>;
-      case 'LOW':
-        return <Badge variant="outline">Low Priority</Badge>;
-    }
-  };
-
   const getStatusBadge = (ticket: MaintenanceTicket) => {
-    if (ticket.status === 'LANDLORD_APPROVAL_REQUIRED') {
-      return <Badge variant="amber">Awaiting Landlord Approval</Badge>;
-    }
-    if (ticket.status === 'IN_PROGRESS') {
-      return <Badge variant="blue">In Progress</Badge>;
-    }
-    if (ticket.status === 'AWAITING_TENANT_VERIFICATION') {
-      return <Badge variant="purple">Awaiting Tenant</Badge>;
-    }
-    if (ticket.status === 'TENANT_VERIFIED') {
-      return <Badge variant="teal">Tenant Verified ★</Badge>;
-    }
-    if (ticket.status === 'REPORTED' || !ticket.assignedMistri) {
-      return <Badge variant="secondary">New Issue • Awaiting Mistri</Badge>;
-    }
-    if (ticket.status === 'COMPLETED') {
-      return (
-        <Badge variant="emerald">
-          {ticket.contractorInvoiceStatus === 'PAYABLE' ? 'Closed • Payable' : 'Resolved'}
-        </Badge>
-      );
-    }
+    if (ticket.status === 'LANDLORD_APPROVAL_REQUIRED') return <Badge variant="amber">Awaiting approval</Badge>;
+    if (ticket.status === 'IN_PROGRESS') return <Badge variant="blue">In progress</Badge>;
+    if (ticket.status === 'AWAITING_TENANT_VERIFICATION') return <Badge variant="purple">Awaiting tenant</Badge>;
+    if (ticket.status === 'TENANT_VERIFIED') return <Badge variant="teal">Tenant verified</Badge>;
+    if (ticket.status === 'REPORTED' || !ticket.assignedMistri) return <Badge variant="secondary">New</Badge>;
+    if (ticket.status === 'COMPLETED') return <Badge variant="emerald">{ticket.contractorInvoiceStatus === 'PAYABLE' ? 'Closed · Payable' : 'Resolved'}</Badge>;
     return <Badge variant="secondary">{ticket.status}</Badge>;
   };
 
@@ -167,7 +140,7 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
     e.preventDefault();
     if (!newTitle || !newUnitId) return;
 
-    createTicket({
+    const id = createTicket({
       unitId: newUnitId,
       title: newTitle,
       description: newDescription,
@@ -177,6 +150,7 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
       labourCost: 0
     });
 
+    setSelectedTicketId(id);
     setIsNewJobModalOpen(false);
     setNewTitle('');
     setNewDescription('');
@@ -186,530 +160,369 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
   const pendingApprovalsCount = tickets.filter(t => t.status === 'LANDLORD_APPROVAL_REQUIRED').length;
   const inProgressCount = tickets.filter(t => t.status === 'IN_PROGRESS').length;
   const verificationCount = tickets.filter(t => t.status === 'AWAITING_TENANT_VERIFICATION' || t.status === 'TENANT_VERIFIED').length;
+  const completedCount = tickets.filter(t => t.status === 'COMPLETED').length;
+
+  const stageTabs: { id: string; label: string; count: number }[] = [
+    { id: 'ALL', label: 'All', count: tickets.length },
+    { id: 'REPORTED', label: 'New', count: reportedUnassignedCount },
+    { id: 'APPROVAL', label: 'Approval', count: pendingApprovalsCount },
+    { id: 'IN_PROGRESS', label: 'In progress', count: inProgressCount },
+    { id: 'VERIFICATION', label: 'Verification', count: verificationCount },
+    { id: 'COMPLETED', label: 'Solved', count: completedCount },
+  ];
+
+  const photos = selectedTicket ? [
+    { url: selectedTicket.beforePhotoUrl, label: 'Before' },
+    { url: selectedTicket.afterPhotoUrl, label: 'After' },
+    { url: selectedTicket.receiptPhotoUrl, label: 'Receipt' },
+  ].filter(p => p.url) : [];
 
   return (
     <div className="space-y-6 text-slate-900 text-sm">
-      
+
       {/* Top Header */}
-      <Card className="p-6">
+      <div className={cn(CARD, 'p-6')}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                Issues & Maintenance Pipeline
-              </h1>
-              <Badge variant="secondary" className="font-bold text-sm">
-                {tickets.length} Active Issues
-              </Badge>
+              <h1 className="text-xl font-bold" style={{ color: HEADING }}>Issues &amp; Maintenance</h1>
+              <Badge variant="secondary">{tickets.length} tickets</Badge>
             </div>
-            <p className="text-sm text-slate-600 font-medium mt-1">
+            <p className="text-[13px] text-slate-500 mt-1">
               Issue intake, contractor assignment, inspection quotes, and landlord authorizations
             </p>
           </div>
 
-          <Button
-            variant="default"
-            onClick={() => setIsNewJobModalOpen(true)}
-            className="font-bold text-sm"
-          >
-            <Plus className="w-4 h-4 text-amber-400 mr-1.5" />
-            <span>Report New Issue</span>
-          </Button>
+          {hubTab === 'issues' && (
+            <Button variant="default" onClick={() => setIsNewJobModalOpen(true)} className="font-bold text-sm">
+              <Plus className="w-4 h-4 mr-1.5" />
+              <span>Report New Issue</span>
+            </Button>
+          )}
         </div>
-      </Card>
 
-      {/* Filter Bar */}
-      <Card className="p-4 space-y-3">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          
-          {/* Stage Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-sm">
-            {[
-              { id: 'ALL', label: `All Issues (${tickets.length})` },
-              { id: 'REPORTED', label: `Awaiting Mistri (${reportedUnassignedCount})` },
-              { id: 'APPROVAL', label: `Awaiting Landlord (${pendingApprovalsCount})` },
-              { id: 'IN_PROGRESS', label: `In Progress (${inProgressCount})` },
-              { id: 'VERIFICATION', label: `Tenant Verification (${verificationCount})` },
-              { id: 'COMPLETED', label: 'Completed' }
-            ].map(tab => (
-              <Button
-                key={tab.id}
-                size="sm"
-                variant={stageFilter === tab.id ? 'default' : 'ghost'}
-                onClick={() => setStageFilter(tab.id)}
-                className="h-9 px-3.5 text-sm font-bold whitespace-nowrap cursor-pointer"
-              >
-                {tab.label}
-              </Button>
-            ))}
-          </div>
+        {/* Sub-Navigation Switcher — contained track, distinct from status badges */}
+        <div className="inline-flex flex-wrap items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200 mt-4">
+          <button
+            onClick={() => setHubTab('issues')}
+            className={cn('px-3.5 py-1.5 rounded-lg text-[13px] transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap',
+              hubTab === 'issues' ? 'bg-white text-blue-600 shadow-sm font-semibold' : 'text-slate-500 font-medium hover:text-slate-700')}
+          >
+            <Wrench className="w-3.5 h-3.5" />
+            Reactive Issues
+            {reportedUnassignedCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">{reportedUnassignedCount}</span>
+            )}
+          </button>
+          <button
+            onClick={() => setHubTab('planned')}
+            className={cn('px-3.5 py-1.5 rounded-lg text-[13px] transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap',
+              hubTab === 'planned' ? 'bg-white text-blue-600 shadow-sm font-semibold' : 'text-slate-500 font-medium hover:text-slate-700')}
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            Planned Maintenance
+          </button>
+        </div>
+      </div>
 
-          {/* Trade Filter Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-700 font-bold uppercase whitespace-nowrap">Trade:</span>
+      {hubTab === 'planned' ? (
+        <PlannedMaintenanceCalendar />
+      ) : (
+        <div className={cn(CARD, 'overflow-hidden')}>
+
+          {/* Status tab bar */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 px-5 py-4" style={{ background: '#EEF1FA' }}>
+            <div className="flex items-center gap-5 overflow-x-auto">
+              {stageTabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setStageFilter(tab.id)}
+                  className={cn(
+                    'text-[13px] font-medium pb-1 cursor-pointer transition-colors flex items-center gap-1.5 border-b-2 whitespace-nowrap',
+                    stageFilter === tab.id ? 'text-blue-600 border-blue-600' : 'text-slate-500 border-transparent hover:text-slate-700'
+                  )}
+                >
+                  {tab.label}
+                  {tab.count > 0 && tab.id !== 'ALL' && (
+                    <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">{tab.count}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
             <select
               value={tradeFilter}
               onChange={(e) => setTradeFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm text-slate-800 font-bold focus:outline-none focus:border-slate-800 cursor-pointer"
+              className="bg-white border-0 rounded-lg px-3.5 py-1.5 text-[13px] text-slate-700 font-medium focus:outline-none cursor-pointer shadow-[0_1px_4px_rgba(30,42,90,0.08)]"
             >
-              <option value="ALL">All Trades</option>
-              <option value="PLUMBER_PUMP_GEYSER">Plumbing & Water Motors</option>
-              <option value="ELECTRICIAN_UPS">Electrical & DB</option>
-              <option value="AC_TECHNICIAN">HVAC & AC</option>
-              <option value="PAINTER_SEEPAGE">Painter & Seepage</option>
-              <option value="CARPENTER_LOCKS">Carpenter & Locks</option>
+              <option value="ALL">All trades</option>
+              <option value="PLUMBER_PUMP_GEYSER">Plumbing &amp; Water Motors</option>
+              <option value="ELECTRICIAN_UPS">Electrical &amp; DB</option>
+              <option value="AC_TECHNICIAN">HVAC &amp; AC</option>
+              <option value="PAINTER_SEEPAGE">Painter &amp; Seepage</option>
+              <option value="CARPENTER_LOCKS">Carpenter &amp; Locks</option>
             </select>
           </div>
 
-        </div>
-      </Card>
+          {filteredTickets.length === 0 ? (
+            <EmptyState
+              icon={Wrench}
+              title="No maintenance issues found"
+              description="No work orders or repairs match your current filter."
+              actionLabel="Reset Filter"
+              onAction={() => { setStageFilter('ALL'); setTradeFilter('ALL'); setSearchQuery(''); }}
+            />
+          ) : (
+            <div className="flex flex-col sm:flex-row" style={{ minHeight: '560px' }}>
 
-      {/* Simplified Clean Issues Data Table */}
-      {filteredTickets.length === 0 ? (
-        <EmptyState
-          icon={Wrench}
-          title="No maintenance issues found"
-          description="No work orders or repairs match your current filter."
-          actionLabel="Reset Filter"
-          onAction={() => {
-            setStageFilter('ALL');
-            setTradeFilter('ALL');
-            setSearchQuery('');
-          }}
-        />
-      ) : (
-        <Card className="overflow-hidden shadow-sm">
-          <Table aria-label="Maintenance Issues Table">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-bold text-sm">Issue & Trade</TableHead>
-                <TableHead className="font-bold text-sm">Property & Resident</TableHead>
-                <TableHead className="font-bold text-sm">Priority</TableHead>
-                <TableHead className="font-bold text-sm">Status</TableHead>
-                <TableHead className="font-bold text-sm">Quote & Contractor</TableHead>
-                <TableHead className="text-right font-bold text-sm">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTickets.map((ticket) => {
-                const categoryMeta = getCategoryMeta(ticket.category);
-                const CatIcon = categoryMeta.icon;
-
-                return (
-                  <TableRow 
-                    key={ticket.id}
-                    className="cursor-pointer hover:bg-slate-50 transition-colors"
-                    onClick={() => setActiveInspectorTicket(ticket)}
-                  >
-                    {/* Column 1: Issue & Trade */}
-                    <TableCell className="max-w-xs">
-                      <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                        <span className="font-mono font-bold text-slate-500 text-sm">{ticket.ticketNumber}</span>
-                        
-                        {ticket.source === 'WHATSAPP_AUTO_INGEST' ? (
-                          <span title="Inbound via WhatsApp" className="inline-flex items-center justify-center w-5 h-5 rounded bg-emerald-100 border border-emerald-300 text-emerald-800 shrink-0">
-                            <MessageSquare className="w-3 h-3" aria-label="WhatsApp Inbound" />
-                          </span>
-                        ) : ticket.source === 'PORTAL_REPORT' ? (
-                          <span title="Reported via Resident App" className="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-100 border border-blue-300 text-blue-800 shrink-0">
-                            <Smartphone className="w-3 h-3" aria-label="Resident App" />
-                          </span>
-                        ) : (
-                          <span title="Agency Direct Report" className="inline-flex items-center justify-center w-5 h-5 rounded bg-slate-100 border border-slate-300 text-slate-700 shrink-0">
-                            <User className="w-3 h-3" aria-label="Direct Report" />
-                          </span>
-                        )}
-
-                        <Badge variant={categoryMeta.variant}>
-                          <CatIcon className="w-3.5 h-3.5 mr-1" />
-                          <span>{categoryMeta.label}</span>
-                        </Badge>
-                      </div>
-                      <span className="font-bold text-slate-900 text-sm block truncate">{ticket.title}</span>
-                    </TableCell>
-
-                    {/* Column 2: Property & Resident */}
-                    <TableCell>
-                      <span className="font-bold text-slate-900 block text-sm">{ticket.unitName}</span>
-                      <span className="text-sm text-slate-600 font-medium block">{ticket.propertyName}</span>
-                      <span className="text-sm text-slate-500 font-semibold mt-0.5 block">{ticket.tenantName}</span>
-                    </TableCell>
-
-                    {/* Column 3: Priority */}
-                    <TableCell>
-                      {getUrgencyBadge(ticket.urgency)}
-                    </TableCell>
-
-                    {/* Column 4: Status */}
-                    <TableCell>
-                      {getStatusBadge(ticket)}
-                    </TableCell>
-
-                    {/* Column 5: Quote & Contractor */}
-                    <TableCell>
-                      {ticket.totalCost && ticket.totalCost > 0 ? (
-                        <div>
-                          <span className="font-black text-slate-950 text-sm block">Rs. {ticket.totalCost.toLocaleString()}</span>
-                          <span className="text-sm text-slate-600 font-medium">{ticket.assignedMistri?.name || 'Unassigned'}</span>
-                        </div>
-                      ) : (
-                        <div>
-                          <Badge variant="outline">Quote Pending</Badge>
-                          <span className="text-sm text-slate-500 italic block mt-0.5">Awaiting inspection</span>
-                        </div>
+              {/* LEFT: ticket list */}
+              <div className="w-full sm:w-[340px] shrink-0 border-b sm:border-b-0 sm:border-r border-slate-100 overflow-y-auto" style={{ maxHeight: '720px' }}>
+                {filteredTickets.map(ticket => {
+                  const isSelected = selectedTicket?.id === ticket.id;
+                  return (
+                    <button
+                      key={ticket.id}
+                      onClick={() => setSelectedTicketId(ticket.id)}
+                      className={cn(
+                        'w-full text-left px-4 py-3.5 border-b border-l-4 border-slate-100 cursor-pointer transition-colors block',
+                        isSelected ? 'bg-blue-50 border-l-blue-600' : 'border-l-transparent hover:bg-slate-50'
                       )}
-                    </TableCell>
-
-                    {/* Column 6: Action */}
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="font-bold text-sm h-8 px-3"
-                        onClick={() => setActiveInspectorTicket(ticket)}
-                      >
-                        <span>Review Issue</span>
-                        <ArrowRight className="w-3.5 h-3.5 ml-1 text-amber-500" />
-                      </Button>
-                    </TableCell>
-
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
-
-      {/* Right-Hand Slide-Over Issue Inspector (`Sheet`) with Rich Contextual CTAs */}
-      <Sheet open={!!activeInspectorTicket} onOpenChange={(open) => { if (!open) setActiveInspectorTicket(null); }}>
-        {activeInspectorTicket && (
-          <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-            
-            <SheetHeader className="pb-4 border-b border-slate-200">
-              <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                <Badge variant={getCategoryMeta(activeInspectorTicket.category).variant}>
-                  {getCategoryMeta(activeInspectorTicket.category).label}
-                </Badge>
-                <span className="text-sm font-mono font-bold text-slate-500">{activeInspectorTicket.ticketNumber}</span>
-              </div>
-              <SheetTitle className="text-xl font-black text-slate-900">{activeInspectorTicket.title}</SheetTitle>
-              <SheetDescription className="flex items-center gap-1.5 text-slate-700 font-medium text-sm mt-1">
-                <Building2 className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>{activeInspectorTicket.unitName} • {activeInspectorTicket.propertyName}</span>
-              </SheetDescription>
-            </SheetHeader>
-
-            <div className="space-y-6 my-5 text-sm text-slate-800">
-              
-              {/* PRIMARY CONTEXTUAL CTA BANNER - Top Focus */}
-              {/* 1. Unassigned / Quote Pending State */}
-              {(activeInspectorTicket.status === 'REPORTED' || !activeInspectorTicket.assignedMistri) && (
-                <div className="p-5 rounded-2xl bg-slate-900 text-white space-y-3 shadow-lg border border-slate-800 animate-in fade-in">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Wrench className="w-5 h-5 text-amber-400" />
-                      <span className="font-bold text-base text-white">Action Required: Assign Contractor</span>
-                    </div>
-                    <Badge variant="amber">Pending Mistri</Badge>
-                  </div>
-                  <p className="text-sm text-slate-300 font-medium leading-relaxed">
-                    This issue was logged by the resident and is awaiting an approved trade contractor to inspect the site and submit their material and labour quote.
-                  </p>
-                  <Button
-                    variant="default"
-                    className="w-full font-black text-base h-12 bg-amber-400 hover:bg-amber-500 text-slate-950 shadow-md"
-                    onClick={() => {
-                      setAssigningTicket(activeInspectorTicket);
-                    }}
-                  >
-                    <Wrench className="w-4 h-4 mr-2" />
-                    <span>Assign Contractor & Schedule Inspection Quote</span>
-                  </Button>
-                </div>
-              )}
-
-              {/* 2. Landlord Approval Required State (> Rs. 5,000 Threshold) */}
-              {activeInspectorTicket.status === 'LANDLORD_APPROVAL_REQUIRED' && (
-                <div className="p-5 rounded-2xl bg-amber-50 border border-amber-300 space-y-4 shadow-sm animate-in fade-in">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-5 h-5 text-amber-600" />
-                      <span className="font-bold text-base text-amber-950">Landlord Approval Required</span>
-                    </div>
-                    <Badge variant="amber">Threshold Exceeded</Badge>
-                  </div>
-                  <p className="text-sm text-amber-900 leading-relaxed font-medium">
-                    The quote of <strong>Rs. {activeInspectorTicket.totalCost?.toLocaleString()}</strong> exceeds the agency auto-approval limit of Rs. 5,000. Landlord ({activeInspectorTicket.owner.name}) authorization is required before work can commence.
-                  </p>
-                  
-                  <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
-                    <Button
-                      variant="emerald"
-                      className="w-full sm:flex-1 font-bold text-sm h-10"
-                      onClick={() => {
-                        approveTicket(activeInspectorTicket.id);
-                        setActiveInspectorTicket(null);
-                      }}
                     >
-                      <Check className="w-4 h-4 mr-1.5" />
-                      <span>Approve Quote (Rs. {activeInspectorTicket.totalCost?.toLocaleString()})</span>
-                    </Button>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={cn('w-2 h-2 rounded-full shrink-0', URGENCY_DOT[ticket.urgency])} />
+                        <span className="text-[12px] text-slate-500">{URGENCY_LABEL[ticket.urgency]}</span>
+                      </div>
+                      <div className="text-[14px] font-semibold truncate" style={{ color: isSelected ? '#2563EB' : HEADING }}>{ticket.title}</div>
+                      <div className="text-[12px] text-slate-500 mt-0.5">{ticket.unitName} · {ticket.ticketNumber}</div>
+                      <div className="mt-2">{getStatusBadge(ticket)}</div>
+                    </button>
+                  );
+                })}
+              </div>
 
-                    {activeInspectorTicket.owner.whatsapp && onOpenWhatsAppWithMessage && (
-                      <Button
-                        variant="outline"
-                        className="w-full sm:w-auto font-bold text-sm h-10 bg-white border-amber-300 text-amber-950 hover:bg-amber-100"
-                        onClick={() => {
-                          onOpenWhatsAppWithMessage(
-                            `Hello ${activeInspectorTicket.owner.name}, repair estimate of Rs. ${activeInspectorTicket.totalCost?.toLocaleString()} for ${activeInspectorTicket.title} (${activeInspectorTicket.unitName}) requires your approval. Reply APPROVE to proceed.`,
-                            activeInspectorTicket.owner.whatsapp
-                          );
-                        }}
+              {/* RIGHT: detail panel */}
+              <div className="flex-1 min-w-0 p-6 overflow-y-auto" style={{ maxHeight: '720px' }}>
+                {selectedTicket && (
+                  <div className="space-y-6">
+
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                          <Badge variant={getCategoryMeta(selectedTicket.category).variant}>{getCategoryMeta(selectedTicket.category).label}</Badge>
+                          {getStatusBadge(selectedTicket)}
+                          <span className="text-[12px] text-slate-400 font-mono">{selectedTicket.ticketNumber}</span>
+                        </div>
+                        <h2 className="text-lg font-bold" style={{ color: HEADING }}>{selectedTicket.title}</h2>
+                        <p className="text-[13px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                          <Building2 className="w-3.5 h-3.5" />
+                          {selectedTicket.unitName} · {selectedTicket.propertyName}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => { if (confirm('Delete this ticket?')) deleteTicket(selectedTicket.id); }}
+                        className="text-slate-400 hover:text-rose-600 transition-colors shrink-0 cursor-pointer"
+                        title="Delete ticket"
                       >
-                        <MessageSquare className="w-4 h-4 text-emerald-600 mr-1.5" />
-                        <span>Notify Landlord</span>
-                      </Button>
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Contextual CTA banner — one per status, unchanged logic */}
+                    {(selectedTicket.status === 'REPORTED' || !selectedTicket.assignedMistri) && (
+                      <div className="rounded-xl p-4 flex items-center justify-between gap-4 flex-wrap" style={{ background: '#EEF1FA' }}>
+                        <div className="flex items-center gap-2.5">
+                          <Wrench className="w-4.5 h-4.5 text-blue-600" />
+                          <span className="text-[13px] font-medium" style={{ color: HEADING }}>Awaiting an approved contractor to inspect and quote.</span>
+                        </div>
+                        <Button variant="default" className="font-semibold text-sm" onClick={() => setAssigningTicket(selectedTicket)}>
+                          Assign Contractor
+                        </Button>
+                      </div>
                     )}
 
-                    <Button
-                      variant="ghost"
-                      className="w-full sm:w-auto text-slate-700 font-bold text-sm h-10 hover:bg-amber-100"
-                      onClick={() => setAssigningTicket(activeInspectorTicket)}
-                    >
-                      <span>Revise Quote</span>
-                    </Button>
-                  </div>
-                </div>
-              )}
+                    {selectedTicket.status === 'LANDLORD_APPROVAL_REQUIRED' && (
+                      <div className="rounded-xl p-4 space-y-3 bg-amber-50">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-4.5 h-4.5 text-amber-700" />
+                          <span className="text-[13px] font-semibold text-amber-900">
+                            Quote of Rs. {selectedTicket.totalCost?.toLocaleString()} exceeds the Rs. 5,000 auto-approval limit — landlord ({selectedTicket.owner.name}) authorization required.
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button variant="emerald" className="font-semibold text-sm" onClick={() => approveTicket(selectedTicket.id)}>
+                            <Check className="w-4 h-4 mr-1.5" /> Approve Quote
+                          </Button>
+                          {selectedTicket.owner.whatsapp && onOpenWhatsAppWithMessage && (
+                            <Button
+                              variant="outline"
+                              className="font-semibold text-sm bg-white"
+                              onClick={() => onOpenWhatsAppWithMessage(
+                                `Hello ${selectedTicket.owner.name}, repair estimate of Rs. ${selectedTicket.totalCost?.toLocaleString()} for ${selectedTicket.title} (${selectedTicket.unitName}) requires your approval. Reply APPROVE to proceed.`,
+                                selectedTicket.owner.whatsapp
+                              )}
+                            >
+                              <MessageSquare className="w-4 h-4 mr-1.5 text-emerald-600" /> Notify Landlord
+                            </Button>
+                          )}
+                          <Button variant="ghost" className="font-semibold text-sm" onClick={() => setAssigningTicket(selectedTicket)}>
+                            Revise Quote
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
-              {/* 3. In Progress State (Contractor Executing Repair) */}
-              {activeInspectorTicket.status === 'IN_PROGRESS' && (
-                <div className="p-5 rounded-2xl bg-blue-50 border border-blue-200 space-y-3 shadow-sm animate-in fade-in">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-blue-600" />
-                      <span className="font-bold text-base text-blue-950">Work in Progress</span>
+                    {selectedTicket.status === 'IN_PROGRESS' && (
+                      <div className="rounded-xl p-4 flex items-center justify-between gap-4 flex-wrap bg-blue-50">
+                        <div className="flex items-center gap-2.5">
+                          <Clock className="w-4.5 h-4.5 text-blue-600" />
+                          <span className="text-[13px] font-medium text-blue-900">
+                            {selectedTicket.assignedMistri?.name} is on-site executing the work order.
+                          </span>
+                        </div>
+                        <Button variant="default" className="font-semibold text-sm" onClick={() => markJobFinishedByContractor(selectedTicket.id)}>
+                          <CheckCircle2 className="w-4 h-4 mr-1.5" /> Mark Job Finished
+                        </Button>
+                      </div>
+                    )}
+
+                    {selectedTicket.status === 'AWAITING_TENANT_VERIFICATION' && (
+                      <div className="rounded-xl p-4 flex items-center justify-between gap-4 flex-wrap bg-indigo-50">
+                        <div className="flex items-center gap-2.5">
+                          <Camera className="w-4.5 h-4.5 text-indigo-600" />
+                          <span className="text-[13px] font-medium text-indigo-900">
+                            {selectedTicket.tenantName} was prompted to inspect the repair and confirm satisfaction.
+                          </span>
+                        </div>
+                        <Button
+                          variant="purple"
+                          className="font-semibold text-sm"
+                          onClick={() => verifyWorkByTenant(selectedTicket.id, 5.0, ['https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400'], 'Verified: Work completed satisfactorily.')}
+                        >
+                          <Camera className="w-4 h-4 mr-1.5" /> Record Tenant Sign-Off
+                        </Button>
+                      </div>
+                    )}
+
+                    {selectedTicket.status === 'TENANT_VERIFIED' && (
+                      <div className="rounded-xl p-4 flex items-center justify-between gap-4 flex-wrap bg-teal-50">
+                        <div className="flex items-center gap-2.5">
+                          <ShieldCheck className="w-4.5 h-4.5 text-teal-600" />
+                          <span className="text-[13px] font-medium text-teal-900">Tenant verified (5.0★) — ready to release contractor invoice.</span>
+                        </div>
+                        <Button variant="emerald" className="font-semibold text-sm" onClick={() => closeTicketAndMakeInvoicePayable(selectedTicket.id)}>
+                          <Check className="w-4 h-4 mr-1.5" /> Close &amp; Authorize Invoice
+                        </Button>
+                      </div>
+                    )}
+
+                    {selectedTicket.status === 'COMPLETED' && (
+                      <div className="rounded-xl p-4 flex items-center gap-2.5 bg-emerald-50">
+                        <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600" />
+                        <span className="text-[13px] font-medium text-emerald-900">
+                          Resolved — contractor invoice of Rs. {selectedTicket.totalCost?.toLocaleString()} marked PAYABLE.
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Description */}
+                    <div>
+                      <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Fault report</div>
+                      <p className="text-[14px] text-slate-700 leading-relaxed">{selectedTicket.description}</p>
                     </div>
-                    <Badge variant="blue">On-Site</Badge>
-                  </div>
-                  <p className="text-sm text-blue-900 leading-relaxed font-medium">
-                    Contractor <strong>{activeInspectorTicket.assignedMistri?.name}</strong> is currently on-site executing the work order. When work is finished, trigger the tenant completion sign-off.
-                  </p>
-                  <Button
-                    variant="default"
-                    className="w-full font-bold text-base h-12 bg-slate-900 text-white hover:bg-slate-800"
-                    onClick={() => {
-                      markJobFinishedByContractor(activeInspectorTicket.id);
-                      setActiveInspectorTicket(null);
-                    }}
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-amber-400 mr-2" />
-                    <span>Mark Job Finished (Send Sign-Off Prompt)</span>
-                  </Button>
-                </div>
-              )}
 
-              {/* 4. Awaiting Tenant Verification State */}
-              {activeInspectorTicket.status === 'AWAITING_TENANT_VERIFICATION' && (
-                <div className="p-5 rounded-2xl bg-purple-50 border border-purple-200 space-y-3 shadow-sm animate-in fade-in">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Camera className="w-5 h-5 text-purple-600" />
-                      <span className="font-bold text-base text-purple-950">Awaiting Resident Confirmation</span>
+                    <div className="h-px bg-slate-100" />
+
+                    {/* Requester grid */}
+                    <div>
+                      <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-wide mb-2.5">Requester</div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-[13px]">
+                        <div className="flex items-center gap-1.5 text-slate-400">
+                          {selectedTicket.source === 'WHATSAPP_AUTO_INGEST' ? <MessageSquare className="w-3.5 h-3.5" /> : selectedTicket.source === 'PORTAL_REPORT' ? <Smartphone className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
+                          <span>{selectedTicket.source === 'WHATSAPP_AUTO_INGEST' ? 'via WhatsApp' : selectedTicket.source === 'PORTAL_REPORT' ? 'via Resident App' : 'Direct report'}</span>
+                        </div>
+                        <div><span className="text-slate-400 block">Reported by</span><span className="font-medium" style={{ color: HEADING }}>{selectedTicket.tenantName}</span></div>
+                        <div><span className="text-slate-400 block">Phone</span><span className="font-medium" style={{ color: HEADING }}>{selectedTicket.tenantPhone}</span></div>
+                        <div><span className="text-slate-400 block">Created</span><span className="font-medium" style={{ color: HEADING }}>{selectedTicket.createdAt}</span></div>
+                        <div><span className="text-slate-400 block">Owner</span><span className="font-medium" style={{ color: HEADING }}>{selectedTicket.owner.name}</span></div>
+                        <div><span className="text-slate-400 block">Owner type</span><span className="font-medium" style={{ color: HEADING }}>{selectedTicket.owner.role === 'OWNER_OVERSEAS' ? 'Overseas' : 'Local'}</span></div>
+                      </div>
                     </div>
-                    <Badge variant="purple">Verification Pending</Badge>
-                  </div>
-                  <p className="text-sm text-purple-900 leading-relaxed font-medium">
-                    Resident <strong>{activeInspectorTicket.tenantName}</strong> received a digital prompt to inspect the repair and confirm satisfaction.
-                  </p>
-                  <Button
-                    variant="purple"
-                    className="w-full font-bold text-base h-12"
-                    onClick={() => {
-                      verifyWorkByTenant(
-                        activeInspectorTicket.id, 
-                        5.0, 
-                        ['https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400'],
-                        'Verified: Work completed satisfactorily.'
-                      );
-                      setActiveInspectorTicket(null);
-                    }}
-                  >
-                    <Camera className="w-4 h-4 mr-2" />
-                    <span>Record Tenant Sign-Off & Photos</span>
-                  </Button>
-                </div>
-              )}
 
-              {/* 5. Tenant Verified State -> Ready for Final Agent Closure */}
-              {activeInspectorTicket.status === 'TENANT_VERIFIED' && (
-                <div className="p-5 rounded-2xl bg-teal-50 border border-teal-200 space-y-3 shadow-sm animate-in fade-in">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-5 h-5 text-teal-600" />
-                      <span className="font-bold text-base text-teal-950">Tenant Verified (5.0 ★ Satisfied)</span>
+                    {/* Photos */}
+                    {photos.length > 0 && (
+                      <div>
+                        <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-wide mb-2.5">Photos</div>
+                        <div className="flex gap-3">
+                          {photos.map(p => (
+                            <div key={p.label} className="w-24 h-24 rounded-xl overflow-hidden shrink-0 relative">
+                              <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
+                              <span className="absolute bottom-1 left-1.5 text-[10px] font-semibold text-white bg-black/50 rounded px-1.5 py-0.5">{p.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="h-px bg-slate-100" />
+
+                    {/* Contractor & cost */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-wide">Contractor &amp; cost</div>
+                        <button onClick={() => setAssigningTicket(selectedTicket)} className="text-[12px] font-semibold text-blue-600 hover:text-blue-700 cursor-pointer">
+                          {selectedTicket.assignedMistri ? 'Edit / Reassign' : 'Assign Contractor'}
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[13px] mb-3">
+                        <div><span className="text-slate-400 block">Contractor</span><span className="font-medium" style={{ color: HEADING }}>{selectedTicket.assignedMistri?.name || 'Unassigned'}</span></div>
+                        <div><span className="text-slate-400 block">Contact</span><span className="font-medium" style={{ color: HEADING }}>{selectedTicket.assignedMistri?.phone || '—'}</span></div>
+                      </div>
+                      <div className="rounded-xl p-3.5 space-y-1.5 text-[13px]" style={{ background: '#EEF1FA' }}>
+                        <div className="flex justify-between text-slate-600"><span>Material</span><span className="font-semibold" style={{ color: HEADING }}>Rs. {selectedTicket.materialCost?.toLocaleString() || 0}</span></div>
+                        <div className="flex justify-between text-slate-600"><span>Labour</span><span className="font-semibold" style={{ color: HEADING }}>Rs. {selectedTicket.labourCost?.toLocaleString() || 0}</span></div>
+                        <div className="flex justify-between pt-1.5 border-t border-white text-[14px] font-bold" style={{ color: HEADING }}>
+                          <span>Total</span>
+                          <span>{selectedTicket.totalCost && selectedTicket.totalCost > 0 ? `Rs. ${selectedTicket.totalCost.toLocaleString()}` : 'Quote pending'}</span>
+                        </div>
+                      </div>
                     </div>
-                    <Badge variant="teal">Ready for Payment</Badge>
-                  </div>
-                  <p className="text-sm text-teal-900 leading-relaxed font-medium">
-                    Resident confirmed the repair is 100% operational. Authorize ticket closure to release contractor invoice to <strong>PAYABLE</strong>.
-                  </p>
-                  <Button
-                    variant="emerald"
-                    className="w-full font-bold text-base h-12 shadow-sm"
-                    onClick={() => {
-                      closeTicketAndMakeInvoicePayable(activeInspectorTicket.id);
-                      setActiveInspectorTicket(null);
-                    }}
-                  >
-                    <Check className="w-4 h-4 mr-2" />
-                    <span>Close Issue & Authorize Contractor Invoice (Rs. {activeInspectorTicket.totalCost?.toLocaleString()} Payable)</span>
-                  </Button>
-                </div>
-              )}
 
-              {/* 6. Completed State */}
-              {activeInspectorTicket.status === 'COMPLETED' && (
-                <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                      <span className="font-bold text-base text-emerald-950">Issue Resolved & Closed</span>
-                    </div>
-                    <Badge variant="emerald">Payable Released</Badge>
                   </div>
-                  <p className="text-sm text-emerald-900 font-medium">
-                    Contractor invoice of <strong>Rs. {activeInspectorTicket.totalCost?.toLocaleString()}</strong> is marked as PAYABLE in financial ledgers.
-                  </p>
-                </div>
-              )}
-
-              {/* Fault Description & Reported Symptoms */}
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                <span className="text-sm font-bold text-slate-700 uppercase tracking-wider block">Resident's Fault Report</span>
-                <p className="text-slate-900 leading-relaxed font-medium text-sm">{activeInspectorTicket.description}</p>
-                
-                <div className="pt-3 flex items-center justify-between text-sm border-t border-slate-200 text-slate-600">
-                  <span>Reported by: <strong className="text-slate-900">{activeInspectorTicket.tenantName}</strong> ({activeInspectorTicket.tenantPhone})</span>
-                  <span>{activeInspectorTicket.createdAt}</span>
-                </div>
-              </div>
-
-              {/* Photo Preview if any */}
-              {activeInspectorTicket.beforePhotoUrl && (
-                <div className="space-y-2">
-                  <span className="text-sm font-bold text-slate-700 uppercase tracking-wider block">Uploaded Issue Photo</span>
-                  <div className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50 p-1.5">
-                    <img 
-                      src={activeInspectorTicket.beforePhotoUrl} 
-                      alt="Fault photo" 
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Contractor & Cost Quotation Card */}
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                  <span className="font-bold text-slate-900 text-sm">Contractor & Cost Breakdown</span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="font-bold text-sm h-7 px-2.5"
-                    onClick={() => setAssigningTicket(activeInspectorTicket)}
-                  >
-                    {activeInspectorTicket.assignedMistri ? 'Edit Quote / Reassign' : 'Assign Contractor'}
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-slate-600 font-medium block">Assigned Contractor:</span>
-                    <strong className="text-slate-950 block">{activeInspectorTicket.assignedMistri?.name || 'Unassigned'}</strong>
-                    <span className="text-slate-600 text-sm">{activeInspectorTicket.assignedMistri?.trade || 'No trade assigned'}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-slate-600 font-medium block">Contact Number:</span>
-                    <strong className="text-slate-950 block">{activeInspectorTicket.assignedMistri?.phone || 'N/A'}</strong>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-slate-200 space-y-1.5 text-sm">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Material / Replacement Parts:</span>
-                    <span className="font-bold text-slate-900">Rs. {activeInspectorTicket.materialCost?.toLocaleString() || 0}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600">
-                    <span>Technician Labour & Service:</span>
-                    <span className="font-bold text-slate-900">Rs. {activeInspectorTicket.labourCost?.toLocaleString() || 0}</span>
-                  </div>
-                  <div className="flex justify-between text-sm font-black text-slate-950 pt-2 border-t border-slate-200">
-                    <span>Total Repair Quote:</span>
-                    <span className="text-base text-slate-950 font-black">
-                      {activeInspectorTicket.totalCost && activeInspectorTicket.totalCost > 0 ? `Rs. ${activeInspectorTicket.totalCost.toLocaleString()}` : 'Quote Pending'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stakeholder Owner Information */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-sm">
-                <div>
-                  <span className="text-slate-600 font-medium block">Property Owner / Landlord</span>
-                  <p className="font-bold text-slate-900 text-sm">{activeInspectorTicket.owner.name}</p>
-                  <p className="text-slate-600 text-sm">{activeInspectorTicket.owner.location}</p>
-                </div>
-                <Badge variant="outline" className="bg-white font-bold text-sm">
-                  {activeInspectorTicket.owner.role === 'OWNER_OVERSEAS' ? 'Overseas Landlord' : 'Local Owner'}
-                </Badge>
+                )}
               </div>
 
             </div>
-
-          </SheetContent>
-        )}
-      </Sheet>
+          )}
+        </div>
+      )}
 
       {/* New Issue Intake Dialog */}
       {isNewJobModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in text-sm text-slate-900">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            
-            <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+
+            <div className="p-5 flex items-center justify-between" style={{ background: '#EEF1FA' }}>
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
-                  <Wrench className="w-5 h-5 text-amber-400" />
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+                  <Wrench className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Log New Maintenance Issue</h3>
-                  <p className="text-sm text-slate-600">Intake issue before contractor assignment</p>
+                  <h3 className="text-base font-bold" style={{ color: HEADING }}>Log New Maintenance Issue</h3>
+                  <p className="text-sm text-slate-500">Intake issue before contractor assignment</p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsNewJobModalOpen(false)}
-                className="font-bold text-sm"
-              >
+              <Button variant="outline" size="sm" onClick={() => setIsNewJobModalOpen(false)} className="font-bold text-sm bg-white">
                 Close
               </Button>
             </div>
 
             <form onSubmit={handleCreateNewJob} className="p-6 space-y-4 text-sm overflow-y-auto">
-              
-              {/* Unit Selection */}
+
               <div>
                 <label className="block text-slate-700 font-bold mb-1.5 text-sm">Target Unit / Demise</label>
                 <ComboBox
-                  options={units.map(u => ({
-                    value: u.id,
-                    label: u.unitNumber,
-                    sublabel: u.propertyName,
-                    group: u.propertyName
-                  }))}
+                  options={units.map(u => ({ value: u.id, label: u.unitNumber, sublabel: u.propertyName, group: u.propertyName }))}
                   value={newUnitId}
                   onChange={setNewUnitId}
                   placeholder="Select a unit…"
@@ -717,7 +530,6 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
                 />
               </div>
 
-              {/* Title */}
               <div>
                 <label className="block text-slate-700 font-bold mb-1.5 text-sm">Issue Summary / Fault Title</label>
                 <Input
@@ -730,8 +542,7 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
                 />
               </div>
 
-                   {/* Category & Urgency */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1.5 text-sm">Trade Category</label>
                   <TogglePills
@@ -764,17 +575,15 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
                 </div>
               </div>
 
-              {/* Cost Notice */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-sm space-y-1">
-                <span className="font-bold text-slate-900 block">Initial Status: Awaiting Inspection (Cost: Rs. 0)</span>
-                <p className="text-slate-600 text-sm font-medium">
-                  Contractor quotation is not required at intake. Once the issue is logged, dispatch a verified mistri to inspect the site and submit their itemized parts & labour quote.
+              <div className="p-4 rounded-xl text-sm space-y-1" style={{ background: '#EEF1FA' }}>
+                <span className="font-bold block" style={{ color: HEADING }}>Initial Status: Awaiting Inspection (Cost: Rs. 0)</span>
+                <p className="text-slate-500 text-sm font-medium">
+                  Contractor quotation is not required at intake. Once the issue is logged, dispatch a verified mistri to inspect the site and submit their itemized parts &amp; labour quote.
                 </p>
               </div>
 
-              {/* Description */}
               <div>
-                <label className="block text-slate-700 font-bold mb-1.5 text-sm">Fault Details & Symptoms</label>
+                <label className="block text-slate-700 font-bold mb-1.5 text-sm">Fault Details &amp; Symptoms</label>
                 <Textarea
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
@@ -785,11 +594,8 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
               </div>
 
               <div className="pt-2">
-                <Button
-                  type="submit"
-                  className="w-full font-bold text-base h-12"
-                >
-                  <Wrench className="w-4 h-4 text-amber-400 mr-2" />
+                <Button type="submit" className="w-full font-bold text-base h-12">
+                  <Wrench className="w-4 h-4 mr-2" />
                   <span>Log Maintenance Issue (Pending Quote)</span>
                 </Button>
               </div>
@@ -807,14 +613,8 @@ export const MaintenanceHub: React.FC<MaintenanceHubProps> = ({
           isOpen={!!assigningTicket}
           onClose={() => setAssigningTicket(null)}
           onAssign={({ contractor, materialCost, labourCost }) => {
-            assignContractorToTicket(
-              assigningTicket.id,
-              contractor,
-              materialCost,
-              labourCost
-            );
+            assignContractorToTicket(assigningTicket.id, contractor, materialCost, labourCost);
             setAssigningTicket(null);
-            setActiveInspectorTicket(null);
           }}
         />
       )}

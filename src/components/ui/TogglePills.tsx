@@ -40,15 +40,15 @@ export function TogglePills<T extends string = string>({
           type="button"
           onClick={() => onChange(opt.value)}
           className={cn(
-            'flex items-center justify-center gap-1.5 rounded-xl border font-bold transition-all cursor-pointer',
+            'flex items-center justify-center gap-1.5 rounded-xl border font-bold transition-all cursor-pointer whitespace-nowrap overflow-hidden',
             size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3 py-2 text-sm',
             value === opt.value
-              ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+              ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
               : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
           )}
         >
           {opt.icon}
-          <span>{opt.label}</span>
+          <span className="truncate">{opt.label}</span>
         </button>
       ))}
     </div>

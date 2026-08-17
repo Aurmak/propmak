@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Plus, 
-  Receipt, 
-  Check, 
-  QrCode, 
-  MessageSquare, 
+import {
+  Plus,
+  Receipt,
+  Check,
+  QrCode,
+  MessageSquare,
   Banknote
 } from 'lucide-react';
 import { usePropMAK } from '../../context/PropMAKContext';
@@ -17,21 +17,23 @@ import { Textarea } from '../ui/textarea';
 import { Badge } from '../ui/badge';
 import { ComboBox } from '../ui/ComboBox';
 
+const HEADING = '#1B2559';
+
 interface CashDrawerModalProps {
   onOpenWhatsAppWithMessage?: (msg: string, phone?: string) => void;
 }
 
-export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({ 
-  onOpenWhatsAppWithMessage 
+export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
+  onOpenWhatsAppWithMessage
 }) => {
   const { units, cashDrawer, recordCashPayment, depositCashDrawer } = usePropMAK();
-  
+
   const [selectedUnitId, setSelectedUnitId] = useState<string>(units[0]?.id || '');
   const [amount, setAmount] = useState<number>(85000);
   const [monthPeriod, setMonthPeriod] = useState<string>('August 2026');
   const [collectorName, setCollectorName] = useState<string>('Munshi Akram (Field Agent)');
   const [notes, setNotes] = useState<string>('Cash received on-site at Central Boulevard.');
-  
+
   const [latestReceiptNo, setLatestReceiptNo] = useState<string | null>(null);
 
   const handleSubmitCash = (e: React.FormEvent) => {
@@ -53,16 +55,16 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
 
   return (
     <div className="space-y-6 text-slate-800">
-      
+
       {/* Header Banner */}
       <Card className="p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-bold tracking-tight" style={{ color: HEADING }}>
                 Field Cash Operations & Safe Drawer
               </h1>
-              <Badge variant="amber">
+              <Badge variant="secondary">
                 Institutional Cash Management
               </Badge>
             </div>
@@ -73,9 +75,9 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
 
           {/* Safe Balance Card */}
           <div className="flex items-center gap-3">
-            <div className="bg-slate-50 px-5 py-2.5 rounded-xl border border-slate-200 text-sm text-right">
+            <div className="px-5 py-2.5 rounded-xl text-sm text-right" style={{ background: '#EEF1FA' }}>
               <span className="text-xs text-slate-500 block font-bold uppercase">Cash in Safe Drawer</span>
-              <span className="text-2xl font-extrabold text-slate-900">Rs. {cashDrawer.cashInHand.toLocaleString()}</span>
+              <span className="text-2xl font-bold" style={{ color: HEADING }}>Rs. {cashDrawer.cashInHand.toLocaleString()}</span>
             </div>
 
             <Button
@@ -83,7 +85,7 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
               disabled={cashDrawer.cashInHand === 0}
               variant="default"
             >
-              <Banknote className="w-4 h-4 text-amber-400" />
+              <Banknote className="w-4 h-4" />
               <span>Deposit to Bank</span>
             </Button>
           </div>
@@ -92,21 +94,21 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
 
       {/* Main Grid: Collection Form + Digital Receipt Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Left Column: Record Cash Entry Form (5 cols) */}
         <Card className="lg:col-span-5 p-6 space-y-4">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-slate-200">
-            <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+          <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shrink-0">
               <Plus className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-900 text-base">Record Field Cash Collection</h2>
+              <h2 className="font-bold text-base" style={{ color: HEADING }}>Record Field Cash Collection</h2>
               <p className="text-xs text-slate-500 font-medium">Collect cash & generate instant digital proof</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmitCash} className="space-y-4 text-sm">
-            
+
             {/* Unit Picker */}
             <div>
               <label className="block text-slate-700 font-bold mb-1 text-xs">Select Property / Unit</label>
@@ -133,7 +135,7 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(Number(e.target.value))}
-                  className="pl-12 text-lg font-extrabold"
+                  className="pl-12 text-lg font-bold"
                   required
                 />
               </div>
@@ -173,7 +175,7 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
               type="submit"
               className="w-full"
             >
-              <Receipt className="w-4 h-4 text-amber-400" />
+              <Receipt className="w-4 h-4" />
               <span>Collect Rs. {amount.toLocaleString()} & Generate Receipt</span>
             </Button>
 
@@ -182,10 +184,10 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
 
         {/* Right Column: Branded Digital PDF Receipt (7 cols) */}
         <Card className="lg:col-span-7 p-6 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Receipt className="w-5 h-5 text-emerald-600" />
-              <h2 className="font-bold text-slate-900 text-base">Digital Cash Receipt Preview (Official)</h2>
+              <h2 className="font-bold text-base" style={{ color: HEADING }}>Digital Cash Receipt Preview (Official)</h2>
             </div>
             <Badge variant="emerald">
               Official Cash Voucher
@@ -193,22 +195,22 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
           </div>
 
           {/* Paper Styled Receipt Card */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-slate-800 shadow-2xs space-y-4">
-            
+          <div className="rounded-2xl p-6 text-slate-800 space-y-4" style={{ background: '#EEF1FA' }}>
+
             {/* Top Receipt Bar */}
-            <div className="flex items-start justify-between border-b border-slate-200 pb-3.5">
+            <div className="flex items-start justify-between border-b border-white pb-3.5">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-black text-slate-900 tracking-tight">PROPMAK</span>
+                  <span className="text-2xl font-bold tracking-tight" style={{ color: HEADING }}>PROPMAK</span>
                   <Badge variant="secondary">
                     Cash Receipt
                   </Badge>
                 </div>
-                <p className="text-sm font-medium text-slate-600 mt-1">PROPMAK Real Estate Management • Operations Division</p>
+                <p className="text-sm font-medium text-slate-500 mt-1">PROPMAK Real Estate Management • Operations Division</p>
               </div>
 
               <div className="text-right">
-                <span className="font-mono text-sm font-bold text-slate-900 block">
+                <span className="font-mono text-sm font-bold block" style={{ color: HEADING }}>
                   {latestReceiptNo || 'REC-2026-0808'}
                 </span>
                 <span className="text-sm text-slate-500 font-medium">{new Date().toLocaleDateString()}</span>
@@ -219,19 +221,19 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-xs text-slate-500 uppercase block font-bold">Received From (Tenant)</span>
-                <span className="font-bold text-slate-900">{selectedUnit?.renter?.name || 'Hamza Javed (Retail)'}</span>
+                <span className="font-bold" style={{ color: HEADING }}>{selectedUnit?.renter?.name || 'Hamza Javed (Retail)'}</span>
                 <span className="text-xs text-slate-500 block">{selectedUnit?.renter?.phone || '+1 (555) 567-8901'}</span>
               </div>
 
               <div>
                 <span className="text-xs text-slate-500 uppercase block font-bold">Property / Demise</span>
-                <span className="font-bold text-slate-900">{selectedUnit?.unitNumber}</span>
+                <span className="font-bold" style={{ color: HEADING }}>{selectedUnit?.unitNumber}</span>
                 <span className="text-xs text-slate-500 block">{selectedUnit?.propertyName}</span>
               </div>
 
               <div>
                 <span className="text-xs text-slate-500 uppercase block font-bold">For Period / Month</span>
-                <span className="font-semibold text-slate-800">{monthPeriod}</span>
+                <span className="font-semibold text-slate-700">{monthPeriod}</span>
               </div>
 
               <div>
@@ -241,10 +243,10 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
             </div>
 
             {/* Amount Box */}
-            <div className="p-4 rounded-xl bg-white border border-slate-200 flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-white shadow-[0_1px_4px_rgba(30,42,90,0.08)] flex items-center justify-between">
               <div>
                 <span className="text-xs text-slate-500 block uppercase font-bold">Total Amount Received</span>
-                <span className="text-2xl font-extrabold text-slate-900">Rs. {amount.toLocaleString()}</span>
+                <span className="text-2xl font-bold" style={{ color: HEADING }}>Rs. {amount.toLocaleString()}</span>
               </div>
               <div className="text-right">
                 <span className="text-xs text-emerald-700 font-bold flex items-center gap-1 justify-end">
@@ -255,7 +257,7 @@ export const CashDrawerModal: React.FC<CashDrawerModalProps> = ({
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-3">
+            <div className="pt-2 border-t border-white flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
                 <QrCode className="w-4 h-4 text-slate-400" />
                 <span>Scan QR for digital verification</span>

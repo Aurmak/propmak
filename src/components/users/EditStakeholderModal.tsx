@@ -13,6 +13,8 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 
+const HEADING = '#1B2559';
+
 interface EditStakeholderModalProps {
   isOpen: boolean;
   stakeholder: Stakeholder | null;
@@ -74,22 +76,22 @@ export const EditStakeholderModal: React.FC<EditStakeholderModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in text-slate-900">
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        
+      <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+
         {/* Header */}
-        <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div className="p-5 flex items-center justify-between" style={{ background: '#EEF1FA' }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
-              <UserCheck className="w-5 h-5 text-amber-400" />
+            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+              <UserCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 leading-tight">Edit Stakeholder Record</h3>
+              <h3 className="text-base font-bold leading-tight" style={{ color: HEADING }}>Edit Stakeholder Record</h3>
               <p className="text-xs text-slate-500">Update contact details, role permissions, or remove user</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -117,7 +119,8 @@ export const EditStakeholderModal: React.FC<EditStakeholderModalProps> = ({
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as any)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-slate-800"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+                style={{ color: HEADING }}
               >
                 <option value="OWNER_OVERSEAS">Overseas Landlord</option>
                 <option value="OWNER_LOCAL">Local Landlord</option>
@@ -176,7 +179,7 @@ export const EditStakeholderModal: React.FC<EditStakeholderModalProps> = ({
 
           {/* Delete Danger Zone */}
           {isConfirmingDelete ? (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between">
+            <div className="p-3 bg-rose-50 rounded-xl flex items-center justify-between">
               <span className="text-xs font-bold text-rose-900">Are you sure you want to delete this user?</span>
               <div className="flex items-center gap-2">
                 <Button
@@ -223,7 +226,7 @@ export const EditStakeholderModal: React.FC<EditStakeholderModalProps> = ({
               type="submit"
               variant="default"
             >
-              <Check className="w-4 h-4 text-amber-400 mr-1" />
+              <Check className="w-4 h-4 mr-1" />
               <span>Save Changes</span>
             </Button>
           </div>

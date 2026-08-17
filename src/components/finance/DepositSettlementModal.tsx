@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Receipt, 
-  X, 
-  User, 
-  Building2, 
-  Zap, 
-  Flame, 
-  Droplets, 
-  Check, 
-  AlertTriangle, 
+import {
+  Receipt,
+  X,
+  User,
+  Building2,
+  Zap,
+  Flame,
+  Droplets,
+  Check,
+  AlertTriangle,
   DollarSign,
   MessageSquare
 } from 'lucide-react';
@@ -20,6 +20,8 @@ import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Card } from '../ui/card';
 import { ComboBox } from '../ui/ComboBox';
+
+const HEADING = '#1B2559';
 
 interface DepositSettlementModalProps {
   units: Unit[];
@@ -48,7 +50,7 @@ export const DepositSettlementModal: React.FC<DepositSettlementModalProps> = ({
 }) => {
   const rentedUnits = units.filter(u => u.renter !== null);
   const [selectedUnitId, setSelectedUnitId] = useState<string>(rentedUnits[0]?.id || units[0]?.id || '');
-  
+
   const currentUnit = units.find(u => u.id === selectedUnitId) || units[0];
   const heldDeposit = currentUnit?.securityDeposit || (currentUnit?.monthlyRent ? currentUnit.monthlyRent * 2 : 300000);
 
@@ -96,23 +98,23 @@ export const DepositSettlementModal: React.FC<DepositSettlementModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in text-slate-800">
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in text-slate-800">
+      <div className="bg-white rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+
         {/* Header */}
-        <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div className="p-5 flex items-center justify-between" style={{ background: '#EEF1FA' }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
-              <Receipt className="w-5 h-5 text-amber-500" />
+            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+              <Receipt className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 leading-tight">Move-Out Security Deposit Settlement</h3>
+              <h3 className="text-base font-bold leading-tight" style={{ color: HEADING }}>Move-Out Security Deposit Settlement</h3>
               <p className="text-xs text-slate-500">Audit unpaid utilities & turnaround deductions before lease release</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-white transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -120,7 +122,7 @@ export const DepositSettlementModal: React.FC<DepositSettlementModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleFormSubmit} className="p-6 space-y-5 overflow-y-auto flex-1 text-xs">
-          
+
           {/* Target Tenancy Selection */}
           <div className="space-y-1.5">
             <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px]">
@@ -141,24 +143,24 @@ export const DepositSettlementModal: React.FC<DepositSettlementModalProps> = ({
           </div>
 
           {/* Held Deposit Snapshot */}
-          <div className="grid grid-cols-2 gap-3 bg-slate-900 text-white p-4 rounded-xl shadow-xs">
+          <div className="grid grid-cols-2 gap-3 p-4 rounded-xl" style={{ background: '#EEF1FA' }}>
             <div>
-              <span className="text-slate-400 block text-[11px] font-bold uppercase">Initial Deposit Held</span>
-              <span className="text-xl font-extrabold text-amber-400">
+              <span className="block text-[11px] font-bold uppercase text-slate-500">Initial Deposit Held</span>
+              <span className="text-xl font-bold" style={{ color: HEADING }}>
                 Rs. {heldDeposit.toLocaleString()}
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px] font-bold uppercase">Current Tenant</span>
-              <span className="text-sm font-bold text-white block truncate">
+              <span className="block text-[11px] font-bold uppercase text-slate-500">Current Tenant</span>
+              <span className="text-sm font-bold block truncate" style={{ color: HEADING }}>
                 {currentUnit.renter?.name || 'Resident'}
               </span>
-              <span className="text-slate-400 text-[11px]">{currentUnit.renter?.phone}</span>
+              <span className="text-slate-500 text-[11px]">{currentUnit.renter?.phone}</span>
             </div>
           </div>
 
           {/* Step 2: Utility Arrears Deductions */}
-          <div className="space-y-2 pt-2 border-t border-slate-200">
+          <div className="space-y-2 pt-2 border-t border-slate-100">
             <div className="flex items-center justify-between">
               <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px]">
                 2. Unpaid Utility Arrears (Electricity / Gas / Society)
@@ -168,10 +170,10 @@ export const DepositSettlementModal: React.FC<DepositSettlementModalProps> = ({
               )}
             </div>
 
-            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+            <div className="p-3.5 rounded-xl space-y-2" style={{ background: '#EEF1FA' }}>
               {unitUtilityBills.length > 0 ? (
                 unitUtilityBills.map(bill => (
-                  <div key={bill.id} className="flex items-center justify-between text-xs py-1 border-b border-slate-200 last:border-0">
+                  <div key={bill.id} className="flex items-center justify-between text-xs py-1 border-b border-white last:border-0">
                     <span className="text-slate-700 font-medium">
                       {bill.utilityType.replace(/_/g, ' ')} ({bill.monthPeriod})
                     </span>
@@ -195,12 +197,12 @@ export const DepositSettlementModal: React.FC<DepositSettlementModalProps> = ({
           </div>
 
           {/* Step 3: Damage & Turnaround Deductions */}
-          <div className="space-y-2 pt-2 border-t border-slate-200">
+          <div className="space-y-2 pt-2 border-t border-slate-100">
             <label className="block text-slate-700 font-bold uppercase tracking-wider text-[11px]">
               3. Damages, Cleaning & Turnaround Repairs
             </label>
 
-            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+            <div className="p-3.5 rounded-xl space-y-2" style={{ background: '#EEF1FA' }}>
               <div>
                 <label className="block text-slate-600 font-bold mb-1">Itemized Deduction Details</label>
                 <Input
@@ -225,10 +227,10 @@ export const DepositSettlementModal: React.FC<DepositSettlementModalProps> = ({
           </div>
 
           {/* Net Settlement Calculation Callout */}
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2">
+          <div className="p-4 rounded-xl bg-emerald-50 text-emerald-950 space-y-2">
             <div className="flex items-center justify-between text-xs pb-1 border-b border-emerald-200">
               <span className="font-bold text-emerald-900">Net Refund Payable to Tenant:</span>
-              <span className="text-lg font-extrabold text-emerald-700">
+              <span className="text-lg font-bold text-emerald-700">
                 Rs. {netRefund.toLocaleString()}
               </span>
             </div>
@@ -238,11 +240,12 @@ export const DepositSettlementModal: React.FC<DepositSettlementModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
+              className="bg-white"
             >
               Cancel
             </Button>
@@ -250,7 +253,7 @@ export const DepositSettlementModal: React.FC<DepositSettlementModalProps> = ({
               type="submit"
               variant="default"
             >
-              <Check className="w-4 h-4 text-amber-400 mr-1" />
+              <Check className="w-4 h-4 mr-1" />
               <span>Confirm & Release Deposit (Rs. {netRefund.toLocaleString()})</span>
             </Button>
           </div>

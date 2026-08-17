@@ -14,6 +14,18 @@ import { PropertyStatus, Stakeholder } from '../../types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
+import { ComboBox } from '../ui/ComboBox';
+import { TogglePills } from '../ui/TogglePills';
+
+const HEADING = '#1B2559';
+
+const BUILDING_OPTIONS = [
+  'Grand Oak Tower',
+  'Pine Crest Residency',
+  'Palm Gardens Estate',
+  'Apex Commercial Plaza',
+  'Central Boulevard Villas',
+];
 
 interface AddPropertyModalProps {
   isOpen: boolean;
@@ -21,7 +33,7 @@ interface AddPropertyModalProps {
 }
 
 export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose }) => {
-  const { addUnit, stakeholders } = usePropMAK();
+  const { addUnit, stakeholders, units } = usePropMAK();
 
   // Form State
   const [propertyName, setPropertyName] = useState('Grand Oak Tower');
@@ -118,22 +130,22 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in text-slate-800">
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        
+      <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+
         {/* Header */}
-        <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div className="p-5 flex items-center justify-between" style={{ background: '#EEF1FA' }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
-              <Building2 className="w-5 h-5 text-amber-500" />
+            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+              <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900 leading-tight">Add New Property & Unit</h2>
+              <h2 className="text-lg font-bold leading-tight" style={{ color: HEADING }}>Add New Property & Unit</h2>
               <p className="text-xs text-slate-500">Register demise, assign landlord, and setup tenancy contract</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-white transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -144,27 +156,27 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
           
           {/* Section 1: Demise & Property Details */}
           <div className="space-y-3">
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
+            <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2" style={{ color: HEADING }}>
               <Building2 className="w-4 h-4 text-slate-500" />
               1. Demise & Building Details
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Development / Building</label>
-                <select
-                  value={propertyName}
-                  onChange={(e) => setPropertyName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-slate-800"
-                >
-                  <option value="Grand Oak Tower">Grand Oak Tower</option>
-                  <option value="Pine Crest Residency">Pine Crest Residency</option>
-                  <option value="Palm Gardens Estate">Palm Gardens Estate</option>
-                  <option value="Apex Commercial Plaza">Apex Commercial Plaza</option>
-                  <option value="Central Boulevard Villas">Central Boulevard Villas</option>
-                </select>
-              </div>
+            <div>
+              <label className="block text-slate-700 font-bold mb-1">Development / Building</label>
+              <ComboBox
+                options={BUILDING_OPTIONS.map(b => ({
+                  value: b,
+                  label: b,
+                  sublabel: `${units.filter(u => u.propertyName === b).length} units`,
+                }))}
+                value={propertyName}
+                onChange={setPropertyName}
+                placeholder="Select a building…"
+                searchPlaceholder="Search building…"
+              />
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Unit Number / Demise Ref *</label>
                 <Input
@@ -177,21 +189,6 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
               </div>
 
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Property Type</label>
-                <select
-                  value={propertyType}
-                  onChange={(e) => setPropertyType(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-slate-800"
-                >
-                  <option value="RESIDENTIAL_APARTMENT">Residential Apartment</option>
-                  <option value="INDEPENDENT_HOUSE">Independent House / Villa</option>
-                  <option value="COMMERCIAL_SHOP">Commercial Retail Shop</option>
-                  <option value="COMMERCIAL_OFFICE">Commercial Office Suite</option>
-                  <option value="PENTHOUSE">Penthouse Duplex</option>
-                </select>
-              </div>
-
-              <div>
                 <label className="block text-slate-700 font-bold mb-1">Covered Area (Sq Ft)</label>
                 <Input
                   type="number"
@@ -200,19 +197,35 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
                 />
               </div>
             </div>
+
+            <div>
+              <label className="block text-slate-700 font-bold mb-1.5">Property Type</label>
+              <TogglePills
+                options={[
+                  { value: 'RESIDENTIAL_APARTMENT', label: 'Residential Apartment' },
+                  { value: 'INDEPENDENT_HOUSE', label: 'Independent House / Villa' },
+                  { value: 'COMMERCIAL_SHOP', label: 'Commercial Retail Shop' },
+                  { value: 'COMMERCIAL_OFFICE', label: 'Commercial Office Suite' },
+                  { value: 'PENTHOUSE', label: 'Penthouse Duplex' },
+                ]}
+                value={propertyType}
+                onChange={val => setPropertyType(val)}
+                columns={2}
+              />
+            </div>
           </div>
 
           {/* Section 2: Landlord Assignment */}
           <div className="space-y-3 pt-3 border-t border-slate-200">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
+              <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2" style={{ color: HEADING }}>
                 <User className="w-4 h-4 text-slate-500" />
                 2. Landlord / Property Owner
               </h3>
               <button
                 type="button"
                 onClick={() => setIsNewLandlord(!isNewLandlord)}
-                className="text-amber-700 font-bold hover:underline"
+                className="text-blue-600 font-bold hover:underline cursor-pointer"
               >
                 {isNewLandlord ? '← Select Existing Landlord' : '+ New Landlord'}
               </button>
@@ -221,20 +234,20 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
             {!isNewLandlord ? (
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Select Landlord</label>
-                <select
+                <ComboBox
+                  options={landlordList.map(l => ({
+                    value: l.id,
+                    label: l.name,
+                    sublabel: `${l.role === 'OWNER_OVERSEAS' ? 'Overseas (UK/UAE)' : 'Local'} — ${l.phone}`,
+                  }))}
                   value={selectedLandlordId}
-                  onChange={(e) => setSelectedLandlordId(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-slate-800"
-                >
-                  {landlordList.map(l => (
-                    <option key={l.id} value={l.id}>
-                      {l.name} — {l.role === 'OWNER_OVERSEAS' ? 'Overseas (UK/UAE)' : 'Local'} ({l.phone})
-                    </option>
-                  ))}
-                </select>
+                  onChange={setSelectedLandlordId}
+                  placeholder="Select a landlord…"
+                  searchPlaceholder="Search landlords…"
+                />
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 rounded-xl" style={{ background: '#EEF1FA' }}>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Landlord Name</label>
                   <Input
@@ -259,38 +272,37 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
 
           {/* Section 3: Tenancy Status */}
           <div className="space-y-3 pt-3 border-t border-slate-200">
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
+            <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2" style={{ color: HEADING }}>
               <Clock className="w-4 h-4 text-slate-500" />
               3. Tenancy & Rent Terms
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Occupancy Status</label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as PropertyStatus)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-slate-800"
-                >
-                  <option value="RENTED_DIRECT">Rented (Active Lease)</option>
-                  <option value="VACANT_FOR_RENT">Vacant (Available for Rent)</option>
-                  <option value="FOR_SALE">For Sale</option>
-                  <option value="UNDER_RENOVATION">Under Renovation / Snagging</option>
-                </select>
-              </div>
+            <div>
+              <label className="block text-slate-700 font-bold mb-1.5">Occupancy Status</label>
+              <TogglePills
+                options={[
+                  { value: 'RENTED_DIRECT', label: 'Rented (Active Lease)' },
+                  { value: 'VACANT_FOR_RENT', label: 'Vacant (Available for Rent)' },
+                  { value: 'FOR_SALE', label: 'For Sale' },
+                  { value: 'UNDER_RENOVATION', label: 'Under Renovation / Snagging' },
+                ]}
+                value={status}
+                onChange={val => setStatus(val as PropertyStatus)}
+                columns={2}
+              />
+            </div>
 
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Monthly Rent (PKR)</label>
-                <Input
-                  type="number"
-                  value={monthlyRent}
-                  onChange={(e) => setMonthlyRent(Number(e.target.value))}
-                />
-              </div>
+            <div className="md:w-1/2">
+              <label className="block text-slate-700 font-bold mb-1">Monthly Rent (PKR)</label>
+              <Input
+                type="number"
+                value={monthlyRent}
+                onChange={(e) => setMonthlyRent(Number(e.target.value))}
+              />
             </div>
 
             {status === 'RENTED_DIRECT' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 rounded-xl" style={{ background: '#EEF1FA' }}>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Tenant Name</label>
                   <Input
@@ -344,7 +356,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
               type="submit"
               variant="default"
             >
-              <Plus className="w-4 h-4 text-amber-400 mr-1" />
+              <Plus className="w-4 h-4 mr-1" />
               <span>Save & Onboard Property</span>
             </Button>
           </div>

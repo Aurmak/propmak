@@ -1,15 +1,19 @@
-import { 
-  Unit, 
-  PaymentTransaction, 
-  MaintenanceTicket, 
-  UtilityBillRecord, 
-  PredictiveAlert, 
-  LandlordPayout, 
+import {
+  Unit,
+  PaymentTransaction,
+  MaintenanceTicket,
+  UtilityBillRecord,
+  PredictiveAlert,
+  LandlordPayout,
   CashDrawerState,
   WhatsAppIngestedMessage,
   Stakeholder,
   Contractor,
-  AssetItem
+  AssetItem,
+  BuildingExpense,
+  DepositRecord,
+  PropertyDocument,
+  PlannedMaintenanceJob
 } from '../types';
 
 export const mockUnits: Unit[] = [
@@ -2856,5 +2860,219 @@ export const mockAssets: AssetItem[] = [
     purchaseDate: '2021-04-15', purchasePrice: 12000,
     moveInCondition: 'EXCELLENT',
     replacementCost: 14000, status: 'MISSING', createdAt: '2024-06-01'
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BUILDING OPERATING COSTS (CAM) — guard/cleaner salaries, generator fuel,
+// water tanker, lift maintenance — recurring building-wide running costs
+// split across units, distinct from per-unit utility bills.
+// ═══════════════════════════════════════════════════════════════════════════
+export const mockBuildingExpenses: BuildingExpense[] = [
+  {
+    id: 'cam_001', propertyName: 'Grand Oak Tower', category: 'GUARD_SECURITY',
+    description: 'Security guard salaries (3 shifts x 2 guards)', amount: 96000,
+    monthPeriod: 'August 2026', paidStatus: 'PAID', unitsSharing: 16,
+    paidDate: '2026-08-03', createdAt: '2026-08-01'
+  },
+  {
+    id: 'cam_002', propertyName: 'Grand Oak Tower', category: 'GENERATOR_FUEL',
+    description: 'Diesel refill for backup generator (loadshedding coverage)', amount: 42000,
+    monthPeriod: 'August 2026', paidStatus: 'PENDING', unitsSharing: 16,
+    notes: 'Generator ran ~60 hrs this month due to extended outages', createdAt: '2026-08-12'
+  },
+  {
+    id: 'cam_003', propertyName: 'Grand Oak Tower', category: 'CLEANING_STAFF',
+    description: 'Common area cleaning staff (2 sweepers)', amount: 36000,
+    monthPeriod: 'August 2026', paidStatus: 'PAID', unitsSharing: 16,
+    paidDate: '2026-08-03', createdAt: '2026-08-01'
+  },
+  {
+    id: 'cam_004', propertyName: 'Grand Oak Tower', category: 'LIFT_MAINTENANCE',
+    description: 'Elevator AMC — quarterly service (2 lifts)', amount: 28000,
+    monthPeriod: 'August 2026', paidStatus: 'PENDING', unitsSharing: 16,
+    createdAt: '2026-08-10'
+  },
+  {
+    id: 'cam_005', propertyName: 'Sunrise Heights', category: 'WATER_TANKER',
+    description: 'Water tanker bookings (municipal supply shortfall)', amount: 18000,
+    monthPeriod: 'August 2026', paidStatus: 'PAID', unitsSharing: 10,
+    paidDate: '2026-08-05', createdAt: '2026-08-04'
+  },
+  {
+    id: 'cam_006', propertyName: 'Sunrise Heights', category: 'GUARD_SECURITY',
+    description: 'Chowkidar salary + gate maintenance', amount: 32000,
+    monthPeriod: 'August 2026', paidStatus: 'PAID', unitsSharing: 10,
+    paidDate: '2026-08-05', createdAt: '2026-08-04'
+  },
+  {
+    id: 'cam_007', propertyName: 'Apex Commercial Plaza', category: 'GENERATOR_FUEL',
+    description: 'Diesel refill — plaza backup generator', amount: 55000,
+    monthPeriod: 'August 2026', paidStatus: 'PENDING', unitsSharing: 12,
+    notes: 'Shared cost across all shop/office tenants on service charge', createdAt: '2026-08-14'
+  },
+  {
+    id: 'cam_008', propertyName: 'Apex Commercial Plaza', category: 'CLEANING_STAFF',
+    description: 'Plaza common area cleaning & waste disposal', amount: 24000,
+    monthPeriod: 'August 2026', paidStatus: 'PAID', unitsSharing: 12,
+    paidDate: '2026-08-06', createdAt: '2026-08-02'
+  },
+  {
+    id: 'cam_009', propertyName: 'Al-Hafeez Plaza', category: 'LIFT_MAINTENANCE',
+    description: 'Elevator AMC — quarterly service', amount: 22000,
+    monthPeriod: 'July 2026', paidStatus: 'PAID', unitsSharing: 8,
+    paidDate: '2026-07-08', createdAt: '2026-07-05'
+  },
+  {
+    id: 'cam_010', propertyName: 'Grand Oak Tower', category: 'OTHER',
+    description: 'CCTV camera repair (main gate + lobby)', amount: 9500,
+    monthPeriod: 'August 2026', paidStatus: 'PENDING', unitsSharing: 16,
+    createdAt: '2026-08-15'
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECURITY DEPOSIT & ADVANCE RENT LEDGER — what's held per tenancy, and the
+// refund/deduction workflow at move-out.
+// ═══════════════════════════════════════════════════════════════════════════
+export const mockDepositRecords: DepositRecord[] = [
+  {
+    id: 'dep_001', unitId: 'unit_101', unitName: 'Apt 402 (3-Bed Luxury)', propertyName: 'Grand Oak Tower',
+    tenantName: 'Khurram Shahzad (Corporate Tenant)', tenantPhone: '+1 (555) 234-5678',
+    securityDepositHeld: 320000, advanceRentHeld: 160000, advanceRentMonths: 1,
+    collectedDate: '2025-09-01', status: 'HELD'
+  },
+  {
+    id: 'dep_002', unitId: 'unit_107', unitName: 'Apt 101 (2-Bed Garden)', propertyName: 'Grand Oak Tower',
+    tenantName: 'Ayesha Siddiqui', tenantPhone: '+1 (555) 111-2233',
+    securityDepositHeld: 220000, advanceRentHeld: 220000, advanceRentMonths: 2,
+    collectedDate: '2025-11-01', status: 'HELD'
+  },
+  {
+    id: 'dep_003', unitId: 'unit_113', unitName: 'Apt 102 (2-Bed Standard)', propertyName: 'Grand Oak Tower',
+    tenantName: 'Salman Yousaf (Banker)', tenantPhone: '+1 (555) 123-4567',
+    securityDepositHeld: 210000, advanceRentHeld: 105000, advanceRentMonths: 1,
+    collectedDate: '2025-12-01', status: 'HELD'
+  },
+  {
+    id: 'dep_004', unitId: 'unit_118', unitName: 'Apt 401 (3-Bed Corner)', propertyName: 'Grand Oak Tower',
+    tenantName: 'Dr. Asif Zia (Surgeon)', tenantPhone: '+1 (555) 456-7892',
+    securityDepositHeld: 340000, advanceRentHeld: 340000, advanceRentMonths: 2,
+    collectedDate: '2025-10-15', status: 'HELD'
+  },
+  {
+    id: 'dep_005', unitId: 'unit_102', unitName: 'Apt 308 (2-Bed)', propertyName: 'Grand Oak Tower',
+    tenantName: 'Previous Tenant (Vacated)', tenantPhone: '+1 (555) 998-1122',
+    securityDepositHeld: 180000, advanceRentHeld: 90000, advanceRentMonths: 1,
+    collectedDate: '2024-02-01', status: 'REFUNDED',
+    utilityDeductions: 8500, damageDeductions: 45000,
+    deductionNotes: 'AC compressor noise + gas refill, kitchen exhaust fan blade broken',
+    netRefundAmount: 126500, refundedDate: '2026-06-20'
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DOCUMENT VAULT — tenancy agreements, CNIC copies, ownership proofs per
+// unit/tenant. Local recordkeeping, not compliance/certification tracking.
+// ═══════════════════════════════════════════════════════════════════════════
+export const mockPropertyDocuments: PropertyDocument[] = [
+  {
+    id: 'doc_001', unitId: 'unit_101', unitName: 'Apt 402 (3-Bed Luxury)', propertyName: 'Grand Oak Tower',
+    documentType: 'TENANCY_AGREEMENT', title: 'Tenancy Agreement (Stamp Paper) — Khurram Shahzad',
+    relatedPersonName: 'Khurram Shahzad', fileUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600',
+    uploadedDate: '2025-09-01', notes: '11-month agreement, notarized copy on file'
+  },
+  {
+    id: 'doc_002', unitId: 'unit_101', unitName: 'Apt 402 (3-Bed Luxury)', propertyName: 'Grand Oak Tower',
+    documentType: 'CNIC_TENANT', title: 'CNIC Copy — Khurram Shahzad',
+    relatedPersonName: 'Khurram Shahzad', fileUrl: 'https://images.unsplash.com/photo-1607703703674-df96af81dffa?w=600',
+    uploadedDate: '2025-08-28'
+  },
+  {
+    id: 'doc_003', unitId: 'unit_107', unitName: 'Apt 101 (2-Bed Garden)', propertyName: 'Grand Oak Tower',
+    documentType: 'TENANCY_AGREEMENT', title: 'Tenancy Agreement (Stamp Paper) — Ayesha Siddiqui',
+    relatedPersonName: 'Ayesha Siddiqui', fileUrl: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600',
+    uploadedDate: '2025-11-01'
+  },
+  {
+    id: 'doc_004', unitId: 'unit_107', unitName: 'Apt 101 (2-Bed Garden)', propertyName: 'Grand Oak Tower',
+    documentType: 'CNIC_TENANT', title: 'CNIC Copy — Ayesha Siddiqui',
+    relatedPersonName: 'Ayesha Siddiqui', fileUrl: 'https://images.unsplash.com/photo-1607703703674-df96af81dffa?w=600',
+    uploadedDate: '2025-10-29'
+  },
+  {
+    id: 'doc_005', unitId: 'unit_101', unitName: 'Apt 402 (3-Bed Luxury)', propertyName: 'Grand Oak Tower',
+    documentType: 'OWNERSHIP_PROOF', title: 'Allotment / Sale Deed — Dr. Tariq Mahmood',
+    relatedPersonName: 'Dr. Tariq Mahmood (Investor)', fileUrl: 'https://images.unsplash.com/photo-1568667256549-094345857637?w=600',
+    uploadedDate: '2023-06-10'
+  },
+  {
+    id: 'doc_006', unitId: 'unit_113', unitName: 'Apt 102 (2-Bed Standard)', propertyName: 'Grand Oak Tower',
+    documentType: 'CNIC_OWNER', title: 'CNIC Copy — Begum Naseem Akhtar (Owner)',
+    relatedPersonName: 'Begum Naseem Akhtar', fileUrl: 'https://images.unsplash.com/photo-1607703703674-df96af81dffa?w=600',
+    uploadedDate: '2025-11-20'
+  },
+  {
+    id: 'doc_007', unitId: 'unit_201', unitName: 'Shop GF-3', propertyName: 'Al-Hafeez Plaza',
+    documentType: 'UTILITY_TRANSFER', title: 'Electricity Meter Transfer Letter (Commercial)',
+    fileUrl: 'https://images.unsplash.com/photo-1568667256549-094345857637?w=600',
+    uploadedDate: '2024-06-15', notes: 'K-Electric commercial meter name-transfer to current tenant'
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PLANNED MAINTENANCE CALENDAR — recurring preventive jobs (generator
+// servicing, pest control, tank cleaning, lift AMC, painting) scheduled
+// ahead of time, distinct from reactive WhatsApp-ticket repairs.
+// ═══════════════════════════════════════════════════════════════════════════
+export const mockPlannedMaintenanceJobs: PlannedMaintenanceJob[] = [
+  {
+    id: 'pm_001', propertyName: 'Grand Oak Tower', jobType: 'GENERATOR_SERVICE',
+    title: 'Generator Service & Oil Change', frequency: 'QUARTERLY',
+    dueDate: '2026-08-10', lastCompletedDate: '2026-05-08',
+    assignedContractorName: 'Malik Generators & Diesel Works', estimatedCost: 15000,
+    createdAt: '2026-05-08'
+  },
+  {
+    id: 'pm_002', propertyName: 'Grand Oak Tower', jobType: 'LIFT_AMC',
+    title: 'Elevator Annual Maintenance Contract Service (2 Lifts)', frequency: 'QUARTERLY',
+    dueDate: '2026-08-25', lastCompletedDate: '2026-05-20',
+    assignedContractorName: 'Otis Karachi Service Partner', estimatedCost: 28000,
+    createdAt: '2026-05-20'
+  },
+  {
+    id: 'pm_003', propertyName: 'Grand Oak Tower', jobType: 'PEST_CONTROL',
+    title: 'Common Area & Basement Pest Control Spray', frequency: 'QUARTERLY',
+    dueDate: '2026-09-15', lastCompletedDate: '2026-06-12',
+    assignedContractorName: 'SafeGuard Pest Control Services', estimatedCost: 12000,
+    createdAt: '2026-06-12'
+  },
+  {
+    id: 'pm_004', propertyName: 'Sunrise Heights', jobType: 'WATER_TANK_CLEANING',
+    title: 'Overhead & Underground Water Tank Cleaning', frequency: 'HALF_YEARLY',
+    dueDate: '2026-09-01', lastCompletedDate: '2026-03-01',
+    assignedContractorName: 'AquaClean Tank Services', estimatedCost: 18000,
+    createdAt: '2026-03-01'
+  },
+  {
+    id: 'pm_005', propertyName: 'Apex Commercial Plaza', jobType: 'GENERATOR_SERVICE',
+    title: 'Plaza Backup Generator Service', frequency: 'QUARTERLY',
+    dueDate: '2026-07-28', lastCompletedDate: '2026-04-25',
+    assignedContractorName: 'Malik Generators & Diesel Works', estimatedCost: 16000,
+    notes: 'Overdue — awaiting contractor confirmation', createdAt: '2026-04-25'
+  },
+  {
+    id: 'pm_006', propertyName: 'Al-Hafeez Plaza', jobType: 'FIRE_SAFETY_CHECK',
+    title: 'Fire Extinguisher Refill & Inspection', frequency: 'YEARLY',
+    dueDate: '2026-11-01', lastCompletedDate: '2025-11-01',
+    assignedContractorName: 'Al-Fateh Fire Safety Equipment', estimatedCost: 8000,
+    createdAt: '2025-11-01'
+  },
+  {
+    id: 'pm_007', propertyName: 'Grand Oak Tower', jobType: 'PAINTING',
+    title: 'Exterior Facade Touch-Up Painting', frequency: 'YEARLY',
+    dueDate: '2027-01-15', lastCompletedDate: '2026-01-10',
+    estimatedCost: 180000, notes: 'Get 3 contractor quotes before scheduling',
+    createdAt: '2026-01-10'
   }
 ];

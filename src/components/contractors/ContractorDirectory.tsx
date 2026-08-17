@@ -1,57 +1,39 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Users, 
-  Phone, 
-  Wrench, 
-  Droplets, 
-  Zap, 
-  Wind, 
-  Paintbrush, 
-  Key, 
-  Star, 
-  Plus, 
-  CheckCircle2,
+import {
+  Users,
+  Wrench,
+  Droplets,
+  Zap,
+  Wind,
+  Paintbrush,
+  Key,
+  Star,
+  Plus,
   Search,
-  Filter,
   Edit2,
   Trash2,
-  ArrowRight,
-  ShieldCheck,
-  Building2,
   Briefcase
 } from 'lucide-react';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { 
-  Table, 
-  TableHeader, 
-  TableBody, 
-  TableRow, 
-  TableHead, 
-  TableCell 
-} from '../ui/table';
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetDescription 
-} from '../ui/sheet';
 import { EmptyState } from '../ui/EmptyState';
 import { usePropMAK } from '../../context/PropMAKContext';
 import { AddContractorModal } from './AddContractorModal';
 import { EditContractorModal } from './EditContractorModal';
 import { Contractor, TradeCategory } from '../../types';
+import { cn } from '@/lib/utils';
+
+const HEADING = '#1B2559';
 
 export const ContractorDirectory: React.FC = () => {
   const { contractors, addContractor, updateContractor, deleteContractor, searchQuery, setSearchQuery } = usePropMAK();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingContractor, setEditingContractor] = useState<Contractor | null>(null);
-  const [activeInspectorContractor, setActiveInspectorContractor] = useState<Contractor | null>(null);
+  const [selectedContractorId, setSelectedContractorId] = useState<string | null>(null);
   const [selectedTrade, setSelectedTrade] = useState<string>('ALL');
 
   const filteredContractors = contractors.filter(c => {
@@ -67,6 +49,8 @@ export const ContractorDirectory: React.FC = () => {
     if (selectedTrade === 'ALL') return true;
     return c.category === selectedTrade;
   });
+
+  const selectedContractor = filteredContractors.find(c => c.id === selectedContractorId) || filteredContractors[0] || null;
 
   const getTradeMeta = (category: TradeCategory) => {
     switch (category) {
@@ -93,14 +77,14 @@ export const ContractorDirectory: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-xl font-bold" style={{ color: HEADING }}>
                 Verified Contractors & Trade Directory
               </h1>
               <Badge variant="secondary">
                 {contractors.length} Verified Trades
               </Badge>
             </div>
-            <p className="text-sm text-slate-600 font-medium mt-1">
+            <p className="text-[13px] text-slate-500 mt-1">
               Vetted trade specialists: Electricians, Plumbers, HVAC mechanics, and Carpenters
             </p>
           </div>
@@ -110,7 +94,7 @@ export const ContractorDirectory: React.FC = () => {
             onClick={() => setIsAddModalOpen(true)}
             className="font-bold text-sm"
           >
-            <Plus className="w-4 h-4 text-amber-400 mr-1.5" />
+            <Plus className="w-4 h-4 mr-1.5" />
             <span>Onboard Contractor</span>
           </Button>
         </div>
@@ -119,9 +103,9 @@ export const ContractorDirectory: React.FC = () => {
       {/* Filter Toolbar */}
       <Card className="p-4 space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          
+
           {/* Trade Filter Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto text-sm">
+          <div className="inline-flex flex-wrap items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200">
             {[
               { id: 'ALL', label: `All Trades (${contractors.length})` },
               { id: 'PLUMBER_PUMP_GEYSER', label: 'Plumbing & Pumps', icon: Droplets },
@@ -130,16 +114,17 @@ export const ContractorDirectory: React.FC = () => {
               { id: 'PAINTER_SEEPAGE', label: 'Painting', icon: Paintbrush },
               { id: 'CARPENTER_LOCKS', label: 'Carpentry', icon: Key }
             ].map(tab => (
-              <Button
+              <button
                 key={tab.id}
-                size="sm"
-                variant={selectedTrade === tab.id ? 'default' : 'ghost'}
                 onClick={() => setSelectedTrade(tab.id)}
-                className="h-9 px-3.5 text-sm font-bold whitespace-nowrap cursor-pointer"
+                className={cn(
+                  'px-3.5 py-1.5 rounded-lg text-[13px] whitespace-nowrap transition-colors flex items-center cursor-pointer',
+                  selectedTrade === tab.id ? 'bg-white text-blue-600 shadow-sm font-semibold' : 'text-slate-500 font-medium hover:text-slate-700'
+                )}
               >
-                {tab.icon && <tab.icon className="w-4 h-4 mr-1.5" />}
+                {tab.icon && <tab.icon className="w-3.5 h-3.5 mr-1.5" />}
                 <span>{tab.label}</span>
-              </Button>
+              </button>
             ))}
           </div>
 
@@ -158,7 +143,7 @@ export const ContractorDirectory: React.FC = () => {
         </div>
       </Card>
 
-      {/* Streamlined 5-Column Contractors Table */}
+      {/* Master-Detail: Contractor List + Profile Inspector */}
       {filteredContractors.length === 0 ? (
         <EmptyState
           icon={Users}
@@ -171,178 +156,132 @@ export const ContractorDirectory: React.FC = () => {
           }}
         />
       ) : (
-        <Card className="overflow-hidden shadow-sm">
-          <Table aria-label="Contractor Trade Directory">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-bold text-sm">Contractor & Trade</TableHead>
-                <TableHead className="font-bold text-sm">Contact Phone</TableHead>
-                <TableHead className="font-bold text-sm">Rating & Track Record</TableHead>
-                <TableHead className="font-bold text-sm">Availability</TableHead>
-                <TableHead className="text-right font-bold text-sm">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <Card className="overflow-hidden">
+          <div className="flex flex-col sm:flex-row" style={{ minHeight: '560px' }}>
+
+            {/* LEFT: contractor list */}
+            <div className="w-full sm:w-[340px] shrink-0 border-b sm:border-b-0 sm:border-r border-slate-100 overflow-y-auto" style={{ maxHeight: '720px' }}>
               {filteredContractors.map((c) => {
                 const tradeMeta = getTradeMeta(c.category);
                 const Icon = tradeMeta.icon;
+                const isSelected = selectedContractor?.id === c.id;
 
                 return (
-                  <TableRow 
-                    key={c.id} 
-                    className="cursor-pointer hover:bg-slate-50 transition-colors"
-                    onClick={() => setActiveInspectorContractor(c)}
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedContractorId(c.id)}
+                    className={cn(
+                      'w-full text-left px-4 py-3.5 border-b border-l-4 border-slate-100 cursor-pointer transition-colors block',
+                      isSelected ? 'bg-blue-50 border-l-blue-600' : 'border-l-transparent hover:bg-slate-50'
+                    )}
                   >
-                    
-                    {/* Column 1: Contractor & Trade */}
-                    <TableCell>
-                      <span className="font-bold text-slate-900 text-sm block">{c.name}</span>
-                      <div className="mt-1">
-                        <Badge variant={tradeMeta.variant}>
-                          <Icon className="w-3.5 h-3.5 mr-1" />
-                          <span>{c.trade}</span>
-                        </Badge>
-                      </div>
-                    </TableCell>
-
-                    {/* Column 2: Phone */}
-                    <TableCell className="font-mono text-sm font-semibold text-slate-900">
-                      {c.phone}
-                    </TableCell>
-
-                    {/* Column 3: Rating & Completed Jobs */}
-                    <TableCell>
-                      <div className="flex items-center gap-1 font-bold text-amber-900 text-sm">
-                        <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                        <span>{c.rating}</span>
-                        <span className="text-slate-500 font-medium text-sm ml-1.5">({c.completedJobs} jobs done)</span>
-                      </div>
-                    </TableCell>
-
-                    {/* Column 4: Availability */}
-                    <TableCell>
+                    <div className="text-[14px] font-semibold truncate" style={{ color: isSelected ? '#2563EB' : HEADING }}>{c.name}</div>
+                    <div className="text-[12px] text-slate-500 mt-0.5 font-mono">{c.phone}</div>
+                    <div className="flex items-center gap-1 font-bold text-[12px] mt-1" style={{ color: HEADING }}>
+                      <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                      <span>{c.rating}</span>
+                      <span className="text-slate-500 font-medium ml-1">({c.completedJobs} jobs)</span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                      <Badge variant={tradeMeta.variant}>
+                        <Icon className="w-3.5 h-3.5 mr-1" />
+                        <span>{c.trade}</span>
+                      </Badge>
                       {c.availability === 'AVAILABLE' ? (
                         <Badge variant="emerald">Available</Badge>
                       ) : (
                         <Badge variant="amber">On Active Job</Badge>
                       )}
-                    </TableCell>
-
-                    {/* Column 5: Action */}
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="font-bold text-sm h-8 px-3"
-                        onClick={() => setActiveInspectorContractor(c)}
-                      >
-                        <span>View Profile</span>
-                        <ArrowRight className="w-3.5 h-3.5 ml-1 text-amber-500" />
-                      </Button>
-                    </TableCell>
-
-                  </TableRow>
+                    </div>
+                  </button>
                 );
               })}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
-
-      {/* Slide-Over Contractor Inspector Drawer (`Sheet`) */}
-      <Sheet open={!!activeInspectorContractor} onOpenChange={(open) => { if (!open) setActiveInspectorContractor(null); }}>
-        {activeInspectorContractor && (
-          <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-            
-            <SheetHeader className="pb-4 border-b border-slate-200">
-              <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                <Badge variant={getTradeMeta(activeInspectorContractor.category).variant}>
-                  {activeInspectorContractor.trade}
-                </Badge>
-                {activeInspectorContractor.availability === 'AVAILABLE' ? (
-                  <Badge variant="emerald">Available for Dispatch</Badge>
-                ) : (
-                  <Badge variant="amber">On Active Job</Badge>
-                )}
-              </div>
-              <SheetTitle className="text-xl font-black text-slate-900">{activeInspectorContractor.name}</SheetTitle>
-              <SheetDescription className="flex items-center gap-1.5 text-slate-700 font-medium text-sm mt-1">
-                <Briefcase className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>Specialist Contractor • Contact: {activeInspectorContractor.phone}</span>
-              </SheetDescription>
-            </SheetHeader>
-
-            <div className="space-y-6 my-5 text-sm text-slate-800">
-              
-              {/* Profile Overview Card */}
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Verification & Rating</span>
-                  <div className="flex items-center gap-1 text-amber-900 font-bold text-sm">
-                    <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                    <span>{activeInspectorContractor.rating} Quality Score</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-slate-600 font-medium block">Specialist Trade:</span>
-                    <strong className="text-slate-900 block">{activeInspectorContractor.trade}</strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-600 font-medium block">Standard Rate / Visit:</span>
-                    <strong className="text-slate-900 block">{activeInspectorContractor.standardRate}</strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-600 font-medium block">Direct Phone:</span>
-                    <strong className="text-slate-900 font-mono block">{activeInspectorContractor.phone}</strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-600 font-medium block">CNIC / ID Record:</span>
-                    <strong className="text-slate-900 font-mono block">{activeInspectorContractor.cnicNumber || 'Verified on File'}</strong>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Completed Platform Work Orders:</span>
-                  <strong className="text-slate-950 font-black text-base">{activeInspectorContractor.completedJobs} Jobs</strong>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
-                <Button
-                  variant="default"
-                  className="w-full sm:flex-1 font-bold text-base h-12"
-                  onClick={() => {
-                    setEditingContractor(activeInspectorContractor);
-                    setActiveInspectorContractor(null);
-                  }}
-                >
-                  <Edit2 className="w-4 h-4 mr-2 text-amber-400" />
-                  <span>Edit Contractor Details</span>
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  className="w-full sm:w-auto text-rose-600 hover:text-rose-700 hover:bg-rose-50 font-bold text-base h-12"
-                  onClick={() => {
-                    if (confirm(`Remove contractor ${activeInspectorContractor.name} from directory?`)) {
-                      deleteContractor(activeInspectorContractor.id);
-                      setActiveInspectorContractor(null);
-                    }
-                  }}
-                >
-                  <Trash2 className="w-4 h-4 mr-1.5" />
-                  <span>Delete</span>
-                </Button>
-              </div>
-
             </div>
 
-          </SheetContent>
-        )}
-      </Sheet>
+            {/* RIGHT: detail panel */}
+            <div className="flex-1 min-w-0 p-6 overflow-y-auto" style={{ maxHeight: '720px' }}>
+              {selectedContractor && (
+                <div className="space-y-6">
+
+                  {/* Header */}
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                      <Badge variant={getTradeMeta(selectedContractor.category).variant}>
+                        {selectedContractor.trade}
+                      </Badge>
+                      {selectedContractor.availability === 'AVAILABLE' ? (
+                        <Badge variant="emerald">Available for Dispatch</Badge>
+                      ) : (
+                        <Badge variant="amber">On Active Job</Badge>
+                      )}
+                    </div>
+                    <h2 className="text-lg font-bold" style={{ color: HEADING }}>{selectedContractor.name}</h2>
+                    <p className="text-[13px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                      <Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      Specialist Contractor • Contact: {selectedContractor.phone}
+                    </p>
+                  </div>
+
+                  <div className="h-px bg-slate-100" />
+
+                  {/* Verification & rating */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="text-[12px] font-semibold text-slate-400 uppercase tracking-wide">Verification &amp; Rating</div>
+                      <div className="flex items-center gap-1 font-bold text-sm" style={{ color: HEADING }}>
+                        <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                        <span>{selectedContractor.rating} Quality Score</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[13px]">
+                      <div><span className="text-slate-400 block">Specialist Trade</span><span className="font-medium" style={{ color: HEADING }}>{selectedContractor.trade}</span></div>
+                      <div><span className="text-slate-400 block">Standard Rate / Visit</span><span className="font-medium" style={{ color: HEADING }}>{selectedContractor.standardRate}</span></div>
+                      <div><span className="text-slate-400 block">Direct Phone</span><span className="font-medium font-mono" style={{ color: HEADING }}>{selectedContractor.phone}</span></div>
+                      <div><span className="text-slate-400 block">CNIC / ID Record</span><span className="font-medium font-mono" style={{ color: HEADING }}>{selectedContractor.cnicNumber || 'Verified on File'}</span></div>
+                    </div>
+
+                    <div className="mt-3.5 rounded-xl p-3.5 flex items-center justify-between text-[13px]" style={{ background: '#EEF1FA' }}>
+                      <span className="text-slate-500 font-medium">Completed Platform Work Orders</span>
+                      <strong className="font-bold text-base" style={{ color: HEADING }}>{selectedContractor.completedJobs} Jobs</strong>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-slate-100" />
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <Button
+                      variant="default"
+                      className="w-full sm:flex-1 font-bold text-base h-12"
+                      onClick={() => setEditingContractor(selectedContractor)}
+                    >
+                      <Edit2 className="w-4 h-4 mr-2" />
+                      <span>Edit Contractor Details</span>
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      className="w-full sm:w-auto text-rose-600 hover:text-rose-700 hover:bg-rose-50 font-bold text-base h-12"
+                      onClick={() => {
+                        if (confirm(`Remove contractor ${selectedContractor.name} from directory?`)) {
+                          deleteContractor(selectedContractor.id);
+                          setSelectedContractorId(null);
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1.5" />
+                      <span>Delete</span>
+                    </Button>
+                  </div>
+
+                </div>
+              )}
+            </div>
+
+          </div>
+        </Card>
+      )}
 
       {/* Add Contractor Modal */}
       {isAddModalOpen && (

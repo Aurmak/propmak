@@ -8,6 +8,11 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { usePropMAK } from '../../context/PropMAKContext';
+import { Badge } from '../ui/badge';
+import { cn } from '@/lib/utils';
+
+const HEADING = '#1B2559';
+const CARD = 'bg-white rounded-2xl shadow-[0_2px_16px_rgba(30,42,90,0.07)]';
 
 interface WhatsAppCenterProps {
   initialMessage?: string;
@@ -72,24 +77,22 @@ export const WhatsAppCenter: React.FC<WhatsAppCenterProps> = ({
     <div className="space-y-5">
       
       {/* Top Banner */}
-      <div className="bg-white border border-[#E7E5E4] rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+      <div className={cn(CARD, 'p-6 flex flex-col md:flex-row md:items-center justify-between gap-4')}>
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="font-serif-editorial text-2xl font-bold text-[#1B365D] tracking-tight">
+            <h1 className="text-xl font-bold" style={{ color: HEADING }}>
               WhatsApp Automation & Messaging Hub
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#25D366]/15 text-[#1EBE5D] text-xs font-bold border border-[#25D366]/30">
-              WhatsApp-First Pakistan
-            </span>
+            <Badge variant="emerald">WhatsApp-First Pakistan</Badge>
           </div>
-          <p className="text-xs text-[#78716C] mt-0.5">
+          <p className="text-[13px] text-slate-500 mt-1">
             Instant 1-click WhatsApp triggers: 1st of the month rent alerts, digital payment receipts, landlord repair approvals, and mistri work orders
           </p>
         </div>
 
         <button
           onClick={handleOpenDirectWhatsApp}
-          className="px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs shadow-xs flex items-center gap-1.5 active:scale-95 transition-all"
+          className="px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-sm flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
         >
           <ExternalLink className="w-4 h-4" />
           <span>Launch WhatsApp Web / App</span>
@@ -101,7 +104,7 @@ export const WhatsAppCenter: React.FC<WhatsAppCenterProps> = ({
         
         {/* Left Column: Quick Automation Templates (5 cols) */}
         <div className="lg:col-span-5 space-y-3">
-          <span className="text-xs font-bold text-[#78716C] uppercase tracking-wider block">
+          <span className="text-[12px] font-semibold text-slate-400 uppercase tracking-wide block">
             Pre-Built Pakistan WhatsApp Templates
           </span>
 
@@ -135,23 +138,23 @@ export const WhatsAppCenter: React.FC<WhatsAppCenterProps> = ({
             <div
               key={idx}
               onClick={() => setMessageText(tpl.msg)}
-              className="p-3.5 rounded-xl bg-white border border-[#E7E5E4] hover:border-[#1B365D] cursor-pointer transition-all text-xs group shadow-2xs"
+              className={cn(CARD, 'p-3.5 hover:shadow-[0_4px_20px_rgba(30,42,90,0.12)] cursor-pointer transition-all text-xs group')}
             >
               <div className="flex items-center justify-between">
-                <span className="font-bold text-[#1B365D] group-hover:text-[#FF8A00] transition-colors">
+                <span className="font-semibold group-hover:text-blue-600 transition-colors" style={{ color: HEADING }}>
                   {tpl.title}
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] bg-[#F9F7F3] text-[#78716C] font-semibold border border-[#E7E5E4]">
+                <span className="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-500 font-semibold">
                   {tpl.target}
                 </span>
               </div>
-              <p className="text-[11px] text-[#78716C] mt-1.5 line-clamp-2 leading-relaxed">{tpl.msg}</p>
+              <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">{tpl.msg}</p>
             </div>
           ))}
         </div>
 
         {/* Right Column: Interactive WhatsApp Phone Simulator (7 cols) */}
-        <div className="lg:col-span-7 bg-white border border-[#E7E5E4] rounded-2xl p-6 shadow-xs space-y-4">
+        <div className={cn(CARD, 'lg:col-span-7 p-6 space-y-4')}>
           
           {/* Top WhatsApp Chat Bar */}
           <div className="p-3.5 bg-[#075E54] text-white rounded-xl flex items-center justify-between text-xs">
@@ -170,7 +173,7 @@ export const WhatsAppCenter: React.FC<WhatsAppCenterProps> = ({
           </div>
 
           {/* Chat Messages Stream */}
-          <div className="bg-[#EFEAE2] p-4 rounded-xl border border-[#E7E5E4] space-y-3 h-64 overflow-y-auto text-xs">
+          <div className="bg-[#EFEAE2] p-4 rounded-xl space-y-3 h-64 overflow-y-auto text-xs">
             {messageHistory.map((m, idx) => (
               <div
                 key={idx}
@@ -179,12 +182,12 @@ export const WhatsAppCenter: React.FC<WhatsAppCenterProps> = ({
                 <div
                   className={`p-3 rounded-2xl max-w-[85%] leading-relaxed shadow-2xs ${
                     m.sender === 'AGENCY'
-                      ? 'bg-[#DCF8C6] text-[#2F3E46] rounded-tr-none'
-                      : 'bg-white text-[#2F3E46] rounded-tl-none'
+                      ? 'bg-[#DCF8C6] text-slate-800 rounded-tr-none'
+                      : 'bg-white text-slate-800 rounded-tl-none'
                   }`}
                 >
                   <p>{m.text}</p>
-                  <div className="mt-1 flex items-center justify-end gap-1 text-[9px] text-[#78716C]">
+                  <div className="mt-1 flex items-center justify-end gap-1 text-[9px] text-slate-400">
                     <span>{m.time}</span>
                     {m.sender === 'AGENCY' && <CheckCheck className="w-3 h-3 text-[#34B7F1]" />}
                   </div>
@@ -201,14 +204,14 @@ export const WhatsAppCenter: React.FC<WhatsAppCenterProps> = ({
                 value={recipientName}
                 onChange={(e) => setRecipientName(e.target.value)}
                 placeholder="Recipient Name"
-                className="bg-[#F9F7F3] border border-[#E7E5E4] rounded-lg px-2.5 py-1.5 text-[#2F3E46] text-xs"
+                className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               />
               <input
                 type="text"
                 value={recipientPhone}
                 onChange={(e) => setRecipientPhone(e.target.value)}
                 placeholder="Phone Number (e.g. +923214455888)"
-                className="bg-[#F9F7F3] border border-[#E7E5E4] rounded-lg px-2.5 py-1.5 text-[#2F3E46] text-xs font-mono"
+                className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
               />
             </div>
 
@@ -218,11 +221,11 @@ export const WhatsAppCenter: React.FC<WhatsAppCenterProps> = ({
                 onChange={(e) => setMessageText(e.target.value)}
                 rows={2}
                 placeholder="Type your WhatsApp message..."
-                className="flex-1 bg-[#F9F7F3] border border-[#E7E5E4] rounded-xl p-2.5 text-[#2F3E46] text-xs focus:outline-none focus:border-[#25D366] resize-none"
+                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:border-[#25D366] resize-none"
               />
               <button
                 onClick={handleSendMessage}
-                className="px-4 bg-[#25D366] hover:bg-[#1EBE5D] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1 active:scale-95 transition-all shadow-xs"
+                className="px-4 bg-[#25D366] hover:bg-[#1EBE5D] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer"
               >
                 <Send className="w-4 h-4" />
                 <span>Send</span>

@@ -1,17 +1,24 @@
 'use client';
 
 import React from 'react';
-import { 
-  Building2, 
-  Receipt, 
-  Wallet, 
-  Wrench, 
-  AlertCircle, 
-  CheckCircle
-} from 'lucide-react';
+import { MoreHorizontal, ArrowUp, ArrowDown } from 'lucide-react';
 import { usePropMAK } from '../../context/PropMAKContext';
-import { Card, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
+import { DonutRing } from '../ui/DonutRing';
+
+const HEADING = '#1B2559';
+const CARD = 'bg-white rounded-2xl shadow-[0_2px_16px_rgba(30,42,90,0.07)]';
+
+const Delta: React.FC<{ value: string; up: boolean }> = ({ value, up }) => (
+  <span className={`inline-flex items-center gap-0.5 text-[12px] font-semibold ${up ? 'text-emerald-600' : 'text-rose-600'}`}>
+    {value} {up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+  </span>
+);
+
+const ProgressBar: React.FC<{ percent: number; color: string }> = ({ percent, color }) => (
+  <div className="h-1.5 rounded-full bg-slate-100 w-full overflow-hidden">
+    <div className="h-full rounded-full" style={{ width: `${Math.min(100, percent)}%`, background: color }} />
+  </div>
+);
 
 export const OverviewStats: React.FC = () => {
   const { units, transactions, tickets, cashDrawer, alerts } = usePropMAK();
@@ -19,8 +26,8 @@ export const OverviewStats: React.FC = () => {
   const totalUnits = units.length;
   const rentedUnits = units.filter(u => u.status === 'RENTED_DIRECT' || u.status === 'RENTED_BY_OWNER' || u.status === 'SOLD_CONVERTED_TO_RENT').length;
   const vacantUnits = units.filter(u => u.status === 'VACANT_FOR_RENT').length;
-  const forSaleUnits = units.filter(u => u.status === 'FOR_SALE' || u.status === 'TOKEN_RECEIVED').length;
-  
+  const occupancyPercent = totalUnits > 0 ? Math.round((rentedUnits / totalUnits) * 100) : 0;
+
   const monthlyRentRoll = units
     .filter(u => u.status === 'RENTED_DIRECT' || u.status === 'SOLD_CONVERTED_TO_RENT')
     .reduce((sum, u) => sum + (u.monthlyRent || 0), 0);
@@ -33,122 +40,84 @@ export const OverviewStats: React.FC = () => {
     .filter(t => t.status === 'PENDING_VERIFICATION')
     .reduce((sum, t) => sum + t.amount, 0);
 
+  const collectedPercent = monthlyRentRoll > 0 ? Math.round(collectedThisMonth / monthlyRentRoll * 100) : 0;
+  const pendingPercent = monthlyRentRoll > 0 ? Math.round(pendingVerification / monthlyRentRoll * 100) : 0;
+
   const activeTicketsCount = tickets.filter(t => t.status !== 'COMPLETED').length;
   const pendingApprovalsCount = tickets.filter(t => t.status === 'LANDLORD_APPROVAL_REQUIRED').length;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-      
-      {/* Monthly Rent Roll */}
-      <Card className="hover:border-slate-400 transition-all">
-        <CardContent className="p-6 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-slate-800 uppercase tracking-wider">Monthly Rent Roll</span>
-            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center">
-              <Receipt className="w-5 h-5" />
-            </div>
-          </div>
-          <div>
-            <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Rs. {(monthlyRentRoll / 100000).toFixed(2)} <span className="text-base font-bold text-amber-700">Lacs</span>
-            </div>
-            <p className="text-sm text-slate-700 mt-1 flex items-center gap-1.5 font-medium">
-              <span className="text-emerald-800 font-bold">Rs. {(collectedThisMonth / 100000).toFixed(2)} Lacs</span>
-              <span>verified ({(monthlyRentRoll > 0 ? (collectedThisMonth / monthlyRentRoll * 100).toFixed(0) : 0)}%)</span>
-            </p>
-          </div>
-          {pendingVerification > 0 && (
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-sm">
-              <span className="text-amber-950 font-bold">Pending Slip Verification:</span>
-              <span className="font-extrabold text-amber-900">Rs. {(pendingVerification / 1000).toFixed(0)}k</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-      {/* 360° Property Occupancy */}
-      <Card className="hover:border-slate-400 transition-all">
-        <CardContent className="p-6 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-slate-800 uppercase tracking-wider">Portfolio Occupancy</span>
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center">
-              <Building2 className="w-5 h-5" />
-            </div>
+      {/* Wide: Rent Roll — mirrors the "Requests" 3-stat card */}
+      <div className={`${CARD} p-5 lg:col-span-2`}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-[15px] font-bold" style={{ color: HEADING }}>Rent Roll</h3>
+          <MoreHorizontal className="w-4 h-4 text-slate-400" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div>
+            <div className="text-[13px] text-slate-500">Monthly rent roll</div>
+            <div className="text-xl font-bold mt-0.5" style={{ color: HEADING }}>Rs. {(monthlyRentRoll / 100000).toFixed(2)}L</div>
+            <div className="mt-2.5"><ProgressBar percent={100} color="#2563EB" /></div>
+            <div className="mt-1.5"><Delta value={`${totalUnits} units`} up /></div>
           </div>
           <div>
-            <div className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-baseline gap-2">
-              <span>{rentedUnits}/{totalUnits}</span>
-              <span className="text-sm font-bold text-emerald-800">Rented ({(rentedUnits / totalUnits * 100).toFixed(0)}%)</span>
-            </div>
-            <div className="mt-2 flex items-center gap-2 text-sm">
-              <Badge variant="amber">{vacantUnits} Vacant</Badge>
-              <Badge variant="blue">{forSaleUnits} Sales / Token</Badge>
-            </div>
+            <div className="text-[13px] text-slate-500">Collected this month</div>
+            <div className="text-xl font-bold mt-0.5" style={{ color: HEADING }}>Rs. {(collectedThisMonth / 100000).toFixed(2)}L</div>
+            <div className="mt-2.5"><ProgressBar percent={collectedPercent} color="#10B981" /></div>
+            <div className="mt-1.5"><Delta value={`${collectedPercent}% verified`} up /></div>
           </div>
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-sm text-slate-700">
-            <span className="font-medium">Converted to Managed Rental:</span>
-            <span className="font-bold text-slate-900">2 Units ("Sold-to-Rent")</span>
+          <div>
+            <div className="text-[13px] text-slate-500">Pending verification</div>
+            <div className="text-xl font-bold mt-0.5" style={{ color: HEADING }}>Rs. {(pendingVerification / 1000).toFixed(0)}k</div>
+            <div className="mt-2.5"><ProgressBar percent={pendingPercent} color="#F59E0B" /></div>
+            <div className="mt-1.5"><Delta value={`${pendingPercent}% of roll`} up={false} /></div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Agency Cash Drawer */}
-      <Card className="hover:border-slate-400 transition-all">
-        <CardContent className="p-6 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-slate-800 uppercase tracking-wider">Agency Cash-in-Hand</span>
-            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center">
-              <Wallet className="w-5 h-5" />
-            </div>
-          </div>
-          <div>
-            <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Rs. {cashDrawer.cashInHand.toLocaleString()}
-            </div>
-            <p className="text-sm text-slate-700 mt-1 font-medium">
-              Physical cash in office safe drawer
-            </p>
-          </div>
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-sm">
-            <span className="text-slate-700 font-medium">Technician Disbursements:</span>
-            <span className="font-bold text-rose-800">- Rs. {cashDrawer.disbursedToMistrisToday.toLocaleString()}</span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Occupancy donut — mirrors the "Finance" ring card */}
+      <div className={`${CARD} p-5 flex items-center gap-5`}>
+        <DonutRing percent={occupancyPercent} color="#2563EB" label="rented" />
+        <div>
+          <h3 className="text-[15px] font-bold" style={{ color: HEADING }}>Occupancy</h3>
+          <div className="text-[13px] text-slate-500 mt-2">{rentedUnits}/{totalUnits} units rented</div>
+          <div className="text-[13px] text-slate-500 mt-1">{vacantUnits} vacant</div>
+        </div>
+      </div>
 
-      {/* Maintenance */}
-      <Card className="hover:border-slate-400 transition-all">
-        <CardContent className="p-6 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-slate-800 uppercase tracking-wider">Maintenance & Repairs</span>
-            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-900 flex items-center justify-center">
-              <Wrench className="w-5 h-5" />
-            </div>
+      {/* Cash in hand — mirrors "Communication" stat card */}
+      <div className={`${CARD} p-5`}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-[15px] font-bold" style={{ color: HEADING }}>Cash in hand</h3>
+        </div>
+        <div className="text-2xl font-bold mt-2" style={{ color: HEADING }}>Rs. {cashDrawer.cashInHand.toLocaleString()}</div>
+        <div className="text-[13px] text-slate-500 mt-1">office safe drawer</div>
+        <div className="mt-2"><Delta value={`Rs. ${cashDrawer.disbursedToMistrisToday.toLocaleString()} disbursed`} up={false} /></div>
+      </div>
+
+      {/* Maintenance — mirrors "Tenants" dual-number card */}
+      <div className={`${CARD} p-5`}>
+        <h3 className="text-[15px] font-bold" style={{ color: HEADING }}>Maintenance</h3>
+        <div className="flex items-center gap-8 mt-3">
+          <div>
+            <div className="text-2xl font-bold" style={{ color: HEADING }}>{activeTicketsCount}</div>
+            <div className="text-[12px] text-slate-500 mt-0.5">Active jobs</div>
           </div>
           <div>
-            <div className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-baseline gap-2">
-              <span>{activeTicketsCount}</span>
-              <span className="text-sm font-bold text-slate-800">Active Jobs</span>
-            </div>
-            <p className="text-sm text-slate-600 mt-1 flex items-center gap-1.5 font-medium">
-              {pendingApprovalsCount > 0 ? (
-                <span className="text-amber-900 font-bold flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4 text-amber-600" />
-                  {pendingApprovalsCount} Awaiting Landlord Approval
-                </span>
-              ) : (
-                <span className="text-emerald-700 font-bold flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-emerald-600" /> All Quotes Approved
-                </span>
-              )}
-            </p>
+            <div className="text-2xl font-bold" style={{ color: HEADING }}>{pendingApprovalsCount}</div>
+            <div className="text-[12px] text-slate-500 mt-0.5">Need approval</div>
           </div>
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-sm">
-            <span className="text-slate-700 font-medium">Predictive Alerts:</span>
-            <span className="font-bold text-amber-800">{alerts.length} Action Items</span>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Alerts summary — mirrors "Invoices" small card */}
+      <div className={`${CARD} p-5`}>
+        <h3 className="text-[15px] font-bold" style={{ color: HEADING }}>Predictive alerts</h3>
+        <div className="text-2xl font-bold mt-2" style={{ color: HEADING }}>{alerts.length}</div>
+        <div className="text-[13px] text-slate-500 mt-1">action items to review</div>
+      </div>
 
     </div>
   );

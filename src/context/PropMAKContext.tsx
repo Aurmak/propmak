@@ -1,13 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { 
-  Unit, 
-  PaymentTransaction, 
-  MaintenanceTicket, 
-  UtilityBillRecord, 
-  PredictiveAlert, 
-  LandlordPayout, 
+import {
+  Unit,
+  PaymentTransaction,
+  MaintenanceTicket,
+  UtilityBillRecord,
+  PredictiveAlert,
+  LandlordPayout,
   CashDrawerState,
   UserRole,
   PropertyStatus,
@@ -17,20 +17,28 @@ import {
   TicketStatus,
   Stakeholder,
   Contractor,
-  AssetItem
+  AssetItem,
+  BuildingExpense,
+  DepositRecord,
+  PropertyDocument,
+  PlannedMaintenanceJob
 } from '../types';
-import { 
-  mockUnits, 
-  mockTransactions, 
-  mockTickets, 
-  mockUtilityBills, 
-  mockPredictiveAlerts, 
-  mockLandlordPayouts, 
+import {
+  mockUnits,
+  mockTransactions,
+  mockTickets,
+  mockUtilityBills,
+  mockPredictiveAlerts,
+  mockLandlordPayouts,
   mockCashDrawer,
   mockWhatsAppIngestionEvents,
   mockStakeholders,
   mockContractors,
-  mockAssets
+  mockAssets,
+  mockBuildingExpenses,
+  mockDepositRecords,
+  mockPropertyDocuments,
+  mockPlannedMaintenanceJobs
 } from '../data/mockData';
 import confetti from 'canvas-confetti';
 
@@ -40,6 +48,10 @@ interface PropMAKContextType {
   stakeholders: Stakeholder[];
   contractors: Contractor[];
   assets: AssetItem[];
+  buildingExpenses: BuildingExpense[];
+  depositRecords: DepositRecord[];
+  documents: PropertyDocument[];
+  plannedJobs: PlannedMaintenanceJob[];
   transactions: PaymentTransaction[];
   tickets: MaintenanceTicket[];
   utilityBills: UtilityBillRecord[];
@@ -111,6 +123,20 @@ interface PropMAKContextType {
   addAsset: (assetData: Omit<AssetItem, 'id' | 'createdAt'>) => string;
   updateAsset: (assetId: string, assetData: Partial<AssetItem>) => void;
   deleteAsset: (assetId: string) => void;
+  addBuildingExpense: (data: Omit<BuildingExpense, 'id' | 'createdAt'>) => string;
+  markExpensePaid: (expenseId: string) => void;
+  deleteBuildingExpense: (expenseId: string) => void;
+  addDepositRecord: (data: Omit<DepositRecord, 'id' | 'status'>) => string;
+  settleDeposit: (
+    recordId: string,
+    settlement: { utilityDeductions: number; damageDeductions: number; deductionNotes: string; netRefundAmount: number }
+  ) => void;
+  deleteDepositRecord: (recordId: string) => void;
+  addDocument: (data: Omit<PropertyDocument, 'id'>) => string;
+  deleteDocument: (documentId: string) => void;
+  addPlannedJob: (data: Omit<PlannedMaintenanceJob, 'id' | 'createdAt'>) => string;
+  completePlannedJob: (jobId: string) => void;
+  deletePlannedJob: (jobId: string) => void;
   depositCashDrawer: () => void;
   ingestWhatsAppMessage: (senderPhone: string, messageText: string, mediaUrl?: string) => WhatsAppIngestedMessage;
 }
@@ -122,6 +148,10 @@ export const PropMAKProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [stakeholders, setStakeholders] = useState<Stakeholder[]>(mockStakeholders);
   const [contractors, setContractors] = useState<Contractor[]>(mockContractors);
   const [assets, setAssets] = useState<AssetItem[]>(mockAssets);
+  const [buildingExpenses, setBuildingExpenses] = useState<BuildingExpense[]>(mockBuildingExpenses);
+  const [depositRecords, setDepositRecords] = useState<DepositRecord[]>(mockDepositRecords);
+  const [documents, setDocuments] = useState<PropertyDocument[]>(mockPropertyDocuments);
+  const [plannedJobs, setPlannedJobs] = useState<PlannedMaintenanceJob[]>(mockPlannedMaintenanceJobs);
   const [transactions, setTransactions] = useState<PaymentTransaction[]>(mockTransactions);
   const [tickets, setTickets] = useState<MaintenanceTicket[]>(mockTickets);
   const [utilityBills, setUtilityBills] = useState<UtilityBillRecord[]>(mockUtilityBills);
@@ -695,12 +725,117 @@ export const PropMAKProvider: React.FC<{ children: ReactNode }> = ({ children })
     setAssets(prev => prev.filter(a => a.id !== assetId));
   };
 
+  // Building Operating Costs (CAM) CRUD
+  const addBuildingExpense = (data: Omit<BuildingExpense, 'id' | 'createdAt'>): string => {
+    const id = `cam_${Date.now()}`;
+    const newExpense: BuildingExpense = { ...data, id, createdAt: new Date().toISOString().split('T')[0] };
+    setBuildingExpenses(prev => [newExpense, ...prev]);
+    triggerConfetti();
+    return id;
+  };
+
+  const markExpensePaid = (expenseId: string) => {
+    setBuildingExpenses(prev => prev.map(e => e.id === expenseId
+      ? { ...e, paidStatus: 'PAID', paidDate: new Date().toISOString().split('T')[0] }
+      : e
+    ));
+    triggerConfetti();
+  };
+
+  const deleteBuildingExpense = (expenseId: string) => {
+    setBuildingExpenses(prev => prev.filter(e => e.id !== expenseId));
+  };
+
+  // Security Deposit & Advance Rent Ledger CRUD
+  const addDepositRecord = (data: Omit<DepositRecord, 'id' | 'status'>): string => {
+    const id = `dep_${Date.now()}`;
+    const newRecord: DepositRecord = { ...data, id, status: 'HELD' };
+    setDepositRecords(prev => [newRecord, ...prev]);
+    triggerConfetti();
+    return id;
+  };
+
+  const settleDeposit = (
+    recordId: string,
+    settlement: { utilityDeductions: number; damageDeductions: number; deductionNotes: string; netRefundAmount: number }
+  ) => {
+    setDepositRecords(prev => prev.map(r => r.id === recordId
+      ? {
+        ...r,
+        status: 'REFUNDED',
+        utilityDeductions: settlement.utilityDeductions,
+        damageDeductions: settlement.damageDeductions,
+        deductionNotes: settlement.deductionNotes,
+        netRefundAmount: settlement.netRefundAmount,
+        refundedDate: new Date().toISOString().split('T')[0]
+      }
+      : r
+    ));
+    triggerConfetti();
+  };
+
+  const deleteDepositRecord = (recordId: string) => {
+    setDepositRecords(prev => prev.filter(r => r.id !== recordId));
+  };
+
+  // Document Vault CRUD
+  const addDocument = (data: Omit<PropertyDocument, 'id'>): string => {
+    const id = `doc_${Date.now()}`;
+    const newDoc: PropertyDocument = { ...data, id };
+    setDocuments(prev => [newDoc, ...prev]);
+    triggerConfetti();
+    return id;
+  };
+
+  const deleteDocument = (documentId: string) => {
+    setDocuments(prev => prev.filter(d => d.id !== documentId));
+  };
+
+  // Planned Maintenance Calendar CRUD
+  const addPlannedJob = (data: Omit<PlannedMaintenanceJob, 'id' | 'createdAt'>): string => {
+    const id = `pm_${Date.now()}`;
+    const newJob: PlannedMaintenanceJob = { ...data, id, createdAt: new Date().toISOString().split('T')[0] };
+    setPlannedJobs(prev => [newJob, ...prev]);
+    triggerConfetti();
+    return id;
+  };
+
+  const FREQUENCY_DAYS: Record<PlannedMaintenanceJob['frequency'], number> = {
+    MONTHLY: 30,
+    QUARTERLY: 91,
+    HALF_YEARLY: 182,
+    YEARLY: 365,
+    ONE_TIME: 0
+  };
+
+  const completePlannedJob = (jobId: string) => {
+    setPlannedJobs(prev => prev.map(j => {
+      if (j.id !== jobId) return j;
+      const today = new Date().toISOString().split('T')[0];
+      if (j.frequency === 'ONE_TIME') {
+        return { ...j, lastCompletedDate: today };
+      }
+      const nextDue = new Date();
+      nextDue.setDate(nextDue.getDate() + FREQUENCY_DAYS[j.frequency]);
+      return { ...j, lastCompletedDate: today, dueDate: nextDue.toISOString().split('T')[0] };
+    }));
+    triggerConfetti();
+  };
+
+  const deletePlannedJob = (jobId: string) => {
+    setPlannedJobs(prev => prev.filter(j => j.id !== jobId));
+  };
+
   return (
     <PropMAKContext.Provider value={{
       units,
       stakeholders,
       contractors,
       assets,
+      buildingExpenses,
+      depositRecords,
+      documents,
+      plannedJobs,
       transactions,
       tickets,
       utilityBills,
@@ -742,7 +877,18 @@ export const PropMAKProvider: React.FC<{ children: ReactNode }> = ({ children })
       ingestWhatsAppMessage,
       addAsset,
       updateAsset,
-      deleteAsset
+      deleteAsset,
+      addBuildingExpense,
+      markExpensePaid,
+      deleteBuildingExpense,
+      addDepositRecord,
+      settleDeposit,
+      deleteDepositRecord,
+      addDocument,
+      deleteDocument,
+      addPlannedJob,
+      completePlannedJob,
+      deletePlannedJob
     }}>
       {children}
     </PropMAKContext.Provider>

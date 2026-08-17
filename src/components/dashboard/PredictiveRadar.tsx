@@ -1,27 +1,38 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  AlertTriangle, 
-  Clock, 
-  TrendingUp, 
-  ShieldAlert, 
-  Zap, 
-  MessageSquare, 
-  PhoneCall
-} from 'lucide-react';
 import { usePropMAK } from '../../context/PropMAKContext';
 import { PredictiveAlert } from '../../types';
-import { Card, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
 
 interface PredictiveRadarProps {
   onOpenWhatsAppWithMessage?: (msg: string, phone?: string) => void;
 }
 
-export const PredictiveRadar: React.FC<PredictiveRadarProps> = ({ 
-  onOpenWhatsAppWithMessage 
+const HEADING = '#1B2559';
+
+const TYPE_LABEL: Record<PredictiveAlert['type'], string> = {
+  EXPIRY_SOON: 'Lease expiry',
+  ESCALATION_DUE: 'Rent escalation',
+  VACANCY_LOSS: 'Vacancy loss',
+  APPROVAL_BOTTLENECK: 'Approval needed',
+  UTILITY_MISSING: 'Utility missing',
+};
+
+const SEVERITY_PILL: Record<PredictiveAlert['severity'], string> = {
+  CRITICAL: 'bg-rose-500 text-white',
+  WARNING: 'bg-amber-500 text-white',
+  INFO: 'bg-blue-500 text-white',
+};
+
+const SEVERITY_DOT: Record<PredictiveAlert['severity'], string> = {
+  CRITICAL: 'bg-rose-500',
+  WARNING: 'bg-amber-500',
+  INFO: 'bg-blue-500',
+};
+
+export const PredictiveRadar: React.FC<PredictiveRadarProps> = ({
+  onOpenWhatsAppWithMessage
 }) => {
   const { alerts, approveTicket } = usePropMAK();
   const [resolvedAlerts, setResolvedAlerts] = useState<string[]>([]);
@@ -47,153 +58,70 @@ export const PredictiveRadar: React.FC<PredictiveRadarProps> = ({
     }
   };
 
+  const filterOptions: { id: typeof activeTabFilter; label: string; count?: number }[] = [
+    { id: 'ALL', label: 'All', count: alerts.length },
+    { id: 'CRITICAL', label: 'Critical' },
+    { id: 'EXPIRIES', label: 'Expiries' },
+    { id: 'ESCALATIONS', label: 'Escalations' },
+  ];
+
   return (
-    <Card className="p-6 text-slate-800">
-      
-      {/* Editorial Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-amber-100 border border-amber-200 text-amber-900 flex items-center justify-center">
-            <AlertTriangle className="w-6 h-6 text-amber-600" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-                Predictive Operations Radar
-              </h2>
-              <Badge variant="amber">
-                Proactive Intelligence
-              </Badge>
-            </div>
-            <p className="text-sm text-slate-700 font-medium mt-0.5">
-              Automated alerts for upcoming lease expirations, 10% rent increments, and void revenue losses
-            </p>
-          </div>
-        </div>
+    <div className="bg-white rounded-2xl shadow-[0_2px_16px_rgba(30,42,90,0.07)] overflow-hidden">
 
-        {/* Filter Buttons */}
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 text-sm">
-          <Button
-            size="sm"
-            variant={activeTabFilter === 'ALL' ? 'default' : 'ghost'}
-            onClick={() => setActiveTabFilter('ALL')}
-            className="font-bold"
-          >
-            All ({alerts.length})
-          </Button>
-          <Button
-            size="sm"
-            variant={activeTabFilter === 'CRITICAL' ? 'destructive' : 'ghost'}
-            onClick={() => setActiveTabFilter('CRITICAL')}
-            className="font-bold"
-          >
-            Critical
-          </Button>
-          <Button
-            size="sm"
-            variant={activeTabFilter === 'EXPIRIES' ? 'default' : 'ghost'}
-            onClick={() => setActiveTabFilter('EXPIRIES')}
-            className="font-bold"
-          >
-            Expiries
-          </Button>
-          <Button
-            size="sm"
-            variant={activeTabFilter === 'ESCALATIONS' ? 'emerald' : 'ghost'}
-            onClick={() => setActiveTabFilter('ESCALATIONS')}
-            className="font-bold"
-          >
-            10% Escalations
-          </Button>
-        </div>
-      </div>
-
-      {/* Radar Cards Grid */}
-      <div className="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {visibleAlerts.map((alert) => {
-          return (
-            <div
-              key={alert.id}
-              className={`p-6 rounded-2xl border flex flex-col justify-between transition-all hover:shadow-sm ${
-                alert.severity === 'CRITICAL'
-                  ? 'bg-rose-50/70 border-rose-200 text-rose-950'
-                  : alert.severity === 'WARNING'
-                  ? 'bg-amber-50/70 border-amber-200 text-amber-950'
-                  : 'bg-slate-50 border-slate-200 text-slate-800'
-              }`}
+      {/* Header / tab bar — pale blue band like the reference's Requests sub-nav */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 bg-[#EEF1FA]">
+        <h2 className="text-[15px] font-bold" style={{ color: HEADING }}>Needs your attention</h2>
+        <div className="flex items-center gap-5">
+          {filterOptions.map(opt => (
+            <button
+              key={opt.id}
+              onClick={() => setActiveTabFilter(opt.id)}
+              className={cn(
+                'text-[13px] font-medium pb-1 cursor-pointer transition-colors flex items-center gap-1.5 border-b-2',
+                activeTabFilter === opt.id
+                  ? 'text-blue-600 border-blue-600'
+                  : 'text-slate-500 border-transparent hover:text-slate-700'
+              )}
             >
-              <div>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    {alert.type === 'EXPIRY_SOON' && (
-                      <span className="p-1.5 rounded-lg bg-indigo-100 text-indigo-900">
-                        <Clock className="w-4 h-4" />
-                      </span>
-                    )}
-                    {alert.type === 'ESCALATION_DUE' && (
-                      <span className="p-1.5 rounded-lg bg-emerald-100 text-emerald-900">
-                        <TrendingUp className="w-4 h-4" />
-                      </span>
-                    )}
-                    {alert.type === 'VACANCY_LOSS' && (
-                      <span className="p-1.5 rounded-lg bg-amber-100 text-amber-900">
-                        <ShieldAlert className="w-4 h-4" />
-                      </span>
-                    )}
-                    {alert.type === 'APPROVAL_BOTTLENECK' && (
-                      <span className="p-1.5 rounded-lg bg-rose-100 text-rose-900">
-                        <AlertTriangle className="w-4 h-4" />
-                      </span>
-                    )}
-                    {alert.type === 'UTILITY_MISSING' && (
-                      <span className="p-1.5 rounded-lg bg-blue-100 text-blue-900">
-                        <Zap className="w-4 h-4" />
-                      </span>
-                    )}
-
-                    <span className="text-sm font-bold uppercase tracking-wider text-slate-800">
-                      {alert.type.replace('_', ' ')}
-                    </span>
-                  </div>
-
-                  {alert.metricValue && (
-                    <Badge variant="outline" className="bg-white">
-                      {alert.metricValue}
-                    </Badge>
-                  )}
-                </div>
-
-                <h3 className="text-base font-bold text-slate-900 mt-3 leading-snug">
-                  {alert.title}
-                </h3>
-                <p className="text-sm text-slate-700 mt-2 leading-relaxed font-medium">
-                  {alert.description}
-                </p>
-              </div>
-
-              {/* Action Button */}
-              <div className="mt-5 pt-3.5 border-t border-black/5 flex items-center justify-between gap-2">
-                {alert.contactNumber && (
-                  <span className="text-sm text-slate-800 font-mono flex items-center gap-1 font-bold">
-                    <PhoneCall className="w-3.5 h-3.5 text-slate-600" />
-                    {alert.contactNumber.split(' ')[0]}...
-                  </span>
-                )}
-
-                <Button
-                  size="sm"
-                  onClick={() => handleAction(alert)}
-                >
-                  <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{alert.actionLabel}</span>
-                </Button>
-              </div>
-
-            </div>
-          );
-        })}
+              {opt.label}
+              {typeof opt.count === 'number' && opt.count > 0 && (
+                <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">{opt.count}</span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
-    </Card>
+      {/* Entries */}
+      {visibleAlerts.length === 0 ? (
+        <div className="px-5 py-10 text-center text-[13px] text-slate-500">Nothing under this filter.</div>
+      ) : (
+        visibleAlerts.map((alert) => (
+          <div key={alert.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-slate-100 last:border-b-0">
+            <div className="flex items-start gap-3 min-w-0">
+              <span className={cn('w-2 h-2 rounded-full mt-2 shrink-0', SEVERITY_DOT[alert.severity])} />
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full', SEVERITY_PILL[alert.severity])}>
+                    {TYPE_LABEL[alert.type]}
+                  </span>
+                  {alert.metricValue && <span className="text-[12px] text-slate-400">{alert.metricValue}</span>}
+                </div>
+                <h3 className="text-[14px] font-semibold" style={{ color: HEADING }}>{alert.title}</h3>
+                <p className="text-[13px] text-slate-500 mt-0.5 leading-relaxed">{alert.description}</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleAction(alert)}
+              className="text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 cursor-pointer transition-colors shrink-0 self-start sm:self-center"
+            >
+              {alert.actionLabel}
+            </button>
+          </div>
+        ))
+      )}
+
+    </div>
   );
 };

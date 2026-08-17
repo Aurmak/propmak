@@ -17,6 +17,8 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 
+const HEADING = '#1B2559';
+
 interface FloorMatrixViewProps {
   units: Unit[];
   onSelectUnit: (unit: Unit) => void;
@@ -68,7 +70,7 @@ export const FloorMatrixView: React.FC<FloorMatrixViewProps> = ({
       case 'VACANT_FOR_RENT':
         return 'bg-amber-50 border-amber-300 text-amber-950 hover:bg-amber-100/70';
       case 'FOR_SALE':
-        return 'bg-indigo-50 border-indigo-300 text-indigo-950 hover:bg-indigo-100/70';
+        return 'bg-blue-50 border-blue-300 text-blue-950 hover:bg-blue-100/70';
       case 'TOKEN_RECEIVED':
         return 'bg-purple-50 border-purple-300 text-purple-950 hover:bg-purple-100/70';
       case 'SOLD_CONVERTED_TO_RENT':
@@ -135,26 +137,26 @@ export const FloorMatrixView: React.FC<FloorMatrixViewProps> = ({
           </div>
 
           {/* Key Plaza Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl text-xs" style={{ background: '#EEF1FA' }}>
             <div>
               <span className="text-slate-500 uppercase font-bold block">Total Units</span>
-              <span className="text-base font-extrabold text-slate-900">{buildingUnits.length} Units</span>
+              <span className="text-base font-bold" style={{ color: HEADING }}>{buildingUnits.length} Units</span>
             </div>
             <div>
               <span className="text-slate-500 uppercase font-bold block">Occupancy Rate</span>
-              <span className="text-base font-extrabold text-emerald-700">
+              <span className="text-base font-bold text-emerald-700">
                 {buildingUnits.length > 0 ? `${Math.round((rentedCount / buildingUnits.length) * 100)}%` : '0%'}
               </span>
             </div>
             <div>
               <span className="text-slate-500 uppercase font-bold block">Monthly Rent Roll</span>
-              <span className="text-base font-extrabold text-slate-900">
+              <span className="text-base font-bold" style={{ color: HEADING }}>
                 Rs. {(totalMonthlyRent / 100000).toFixed(2)} Lakh
               </span>
             </div>
             <div>
               <span className="text-slate-500 uppercase font-bold block">Vacant / Void</span>
-              <span className={`text-base font-extrabold ${vacantCount > 0 ? 'text-amber-700' : 'text-slate-900'}`}>
+              <span className="text-base font-bold" style={{ color: vacantCount > 0 ? '#B45309' : HEADING }}>
                 {vacantCount} Vacant
               </span>
             </div>
@@ -164,7 +166,7 @@ export const FloorMatrixView: React.FC<FloorMatrixViewProps> = ({
       </Card>
 
       {/* Legend Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs bg-white p-3 rounded-xl border border-slate-200">
+      <Card className="flex flex-wrap items-center justify-between gap-3 text-xs p-3">
         <span className="font-bold text-slate-700 uppercase tracking-wider">Floor Matrix Legend:</span>
         <div className="flex flex-wrap items-center gap-3">
           <span className="flex items-center gap-1.5">
@@ -176,7 +178,7 @@ export const FloorMatrixView: React.FC<FloorMatrixViewProps> = ({
             <span className="text-slate-700 font-medium">Vacant ({vacantCount})</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm bg-indigo-300 border border-indigo-500"></span>
+            <span className="w-3 h-3 rounded-sm bg-blue-300 border border-blue-500"></span>
             <span className="text-slate-700 font-medium">For Sale / Token ({forSaleCount})</span>
           </span>
           <span className="flex items-center gap-1.5">
@@ -184,7 +186,7 @@ export const FloorMatrixView: React.FC<FloorMatrixViewProps> = ({
             <span className="text-slate-700 font-medium">Sold-to-Rent</span>
           </span>
         </div>
-      </div>
+      </Card>
 
       {/* Floor by Floor Layout Grid */}
       <div className="space-y-4">
@@ -193,23 +195,23 @@ export const FloorMatrixView: React.FC<FloorMatrixViewProps> = ({
           const floorRent = floorUnits.reduce((acc, u) => acc + (u.monthlyRent || 0), 0);
 
           return (
-            <div key={floorNum} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
-              
+            <Card key={floorNum} className="p-5 space-y-3">
+
               {/* Floor Header */}
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-bold">
+                  <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
                     {floorNum}
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-sm">{getFloorName(floorNum)}</h3>
+                    <h3 className="font-bold text-sm" style={{ color: HEADING }}>{getFloorName(floorNum)}</h3>
                     <span className="text-xs text-slate-400 font-medium">{floorUnits.length} Demises on this floor</span>
                   </div>
                 </div>
 
                 <div className="text-right">
                   <span className="text-xs text-slate-500 font-medium block">Floor Rent:</span>
-                  <span className="text-sm font-extrabold text-slate-900">
+                  <span className="text-sm font-bold" style={{ color: HEADING }}>
                     Rs. {floorRent.toLocaleString()} /mo
                   </span>
                 </div>
@@ -228,7 +230,7 @@ export const FloorMatrixView: React.FC<FloorMatrixViewProps> = ({
                     >
                       {/* Top Row: Unit number & badge */}
                       <div className="flex items-start justify-between gap-1">
-                        <span className="font-bold text-slate-900 text-sm truncate">{unit.unitNumber}</span>
+                        <span className="font-bold text-sm truncate" style={{ color: HEADING }}>{unit.unitNumber}</span>
                         {getStatusBadge(unit.status)}
                       </div>
 
@@ -242,17 +244,15 @@ export const FloorMatrixView: React.FC<FloorMatrixViewProps> = ({
                         {unit.renter ? (
                           <div>
                             <span className="text-slate-700 block text-xs font-bold">Tenant:</span>
-                            <span className="font-bold text-slate-900 block truncate max-w-[130px]">{unit.renter.name}</span>
+                            <span className="font-bold block truncate max-w-[130px]" style={{ color: HEADING }}>{unit.renter.name}</span>
                           </div>
                         ) : (
-                          <span className="text-amber-950 font-bold bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300">
-                            — Available —
-                          </span>
+                          <Badge variant="amber">Available</Badge>
                         )}
 
                         <div className="text-right">
                           <span className="text-slate-700 block text-xs font-bold">Rent / Price:</span>
-                          <span className="font-extrabold text-slate-900 text-sm">
+                          <span className="font-bold text-sm" style={{ color: HEADING }}>
                             {unit.monthlyRent ? `Rs. ${(unit.monthlyRent / 1000).toFixed(0)}k` : unit.askingPrice ? `Rs. ${(unit.askingPrice / 10000000).toFixed(1)} Cr` : '—'}
                           </span>
                         </div>
@@ -263,7 +263,7 @@ export const FloorMatrixView: React.FC<FloorMatrixViewProps> = ({
                 })}
               </div>
 
-            </div>
+            </Card>
           );
         })}
       </div>

@@ -1,26 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Building2, 
-  Search, 
-  Bell, 
-  Wallet, 
+import {
+  Building2,
+  Search,
+  Bell,
   AlertTriangle,
   User,
   ChevronDown,
   LogOut,
-  Sliders,
-  Settings,
-  ShieldCheck,
-  Percent,
+  Shield,
   Check
 } from 'lucide-react';
 import { usePropMAK } from '../../context/PropMAKContext';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
-import { AgencySettingsModal } from '../settings/AgencySettingsModal';
+import { ProfileSettingsModal } from '../settings/ProfileSettingsModal';
 
 interface NavbarProps {
   onOpenCashModal: () => void;
@@ -40,12 +36,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [showAlertsDropdown, setShowAlertsDropdown] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<'profile' | 'financial' | 'notifications' | 'security'>('profile');
+  const [settingsTab, setSettingsTab] = useState<'profile' | 'security'>('profile');
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
   const criticalAlertsCount = alerts.filter(a => a.severity === 'CRITICAL').length;
 
-  const handleOpenSettings = (tab: 'profile' | 'financial' | 'notifications' | 'security') => {
+  const handleOpenSettings = (tab: 'profile' | 'security') => {
     setSettingsTab(tab);
     setIsProfileMenuOpen(false);
     setIsSettingsModalOpen(true);
@@ -231,25 +227,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-all cursor-pointer text-left"
                   >
                     <User className="w-4 h-4 text-slate-600" />
-                    <span>My Profile & Agency Info</span>
-                  </button>
-
-                  <button
-                    role="menuitem"
-                    onClick={() => handleOpenSettings('financial')}
-                    className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-all cursor-pointer text-left"
-                  >
-                    <Percent className="w-4 h-4 text-slate-600" />
-                    <span>Commission & Escalation Rules</span>
-                  </button>
-
-                  <button
-                    role="menuitem"
-                    onClick={() => handleOpenSettings('notifications')}
-                    className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-all cursor-pointer text-left"
-                  >
-                    <Bell className="w-4 h-4 text-slate-600" />
-                    <span>Radar & Alert Preferences</span>
+                    <span>My Profile</span>
                   </button>
 
                   <button
@@ -257,8 +235,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => handleOpenSettings('security')}
                     className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-800 hover:bg-slate-100 hover:text-slate-950 transition-all cursor-pointer text-left"
                   >
-                    <Sliders className="w-4 h-4 text-slate-600" />
-                    <span>Security & Authentication</span>
+                    <Shield className="w-4 h-4 text-slate-600" />
+                    <span>Security</span>
                   </button>
 
                   <div className="pt-2 border-t border-slate-200">
@@ -279,8 +257,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </header>
 
-      {/* Agency Settings Modal */}
-      <AgencySettingsModal
+      {/* Personal Profile & Security Modal */}
+      <ProfileSettingsModal
         isOpen={isSettingsModalOpen}
         onClose={() => setIsSettingsModalOpen(false)}
         initialTab={settingsTab}

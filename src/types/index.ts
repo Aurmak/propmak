@@ -257,6 +257,97 @@ export interface Contractor {
   notes?: string;
 }
 
+export type BuildingExpenseCategory =
+  | 'GUARD_SECURITY'
+  | 'CLEANING_STAFF'
+  | 'GENERATOR_FUEL'
+  | 'WATER_TANKER'
+  | 'LIFT_MAINTENANCE'
+  | 'OTHER';
+
+export interface BuildingExpense {
+  id: string;
+  propertyName: string;
+  category: BuildingExpenseCategory;
+  description: string;
+  amount: number;
+  monthPeriod: string;
+  paidStatus: 'PAID' | 'PENDING';
+  unitsSharing: number;
+  paidDate?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export type DepositRecordStatus = 'HELD' | 'REFUNDED';
+
+export interface DepositRecord {
+  id: string;
+  unitId: string;
+  unitName: string;
+  propertyName: string;
+  tenantName: string;
+  tenantPhone: string;
+  securityDepositHeld: number;
+  advanceRentHeld: number;
+  advanceRentMonths: number;
+  collectedDate: string;
+  status: DepositRecordStatus;
+  utilityDeductions?: number;
+  damageDeductions?: number;
+  deductionNotes?: string;
+  netRefundAmount?: number;
+  refundedDate?: string;
+}
+
+export type DocumentType =
+  | 'TENANCY_AGREEMENT'
+  | 'CNIC_TENANT'
+  | 'CNIC_OWNER'
+  | 'OWNERSHIP_PROOF'
+  | 'UTILITY_TRANSFER'
+  | 'OTHER';
+
+export interface PropertyDocument {
+  id: string;
+  unitId: string;
+  unitName: string;
+  propertyName: string;
+  documentType: DocumentType;
+  title: string;
+  relatedPersonName?: string;
+  fileUrl: string;
+  uploadedDate: string;
+  notes?: string;
+}
+
+export type PlannedJobType =
+  | 'GENERATOR_SERVICE'
+  | 'PEST_CONTROL'
+  | 'WATER_TANK_CLEANING'
+  | 'PAINTING'
+  | 'LIFT_AMC'
+  | 'FIRE_SAFETY_CHECK'
+  | 'OTHER';
+
+export type PlannedJobFrequency = 'MONTHLY' | 'QUARTERLY' | 'HALF_YEARLY' | 'YEARLY' | 'ONE_TIME';
+
+export interface PlannedMaintenanceJob {
+  id: string;
+  propertyName: string;
+  unitId?: string;
+  unitName?: string;
+  jobType: PlannedJobType;
+  title: string;
+  frequency: PlannedJobFrequency;
+  dueDate: string;
+  lastCompletedDate?: string;
+  assignedContractorName?: string;
+  estimatedCost?: number;
+  notes?: string;
+  createdAt: string;
+}
+
 export type AssetCategory = 'APPLIANCE' | 'FIXTURE' | 'FURNITURE' | 'FITTING';
 export type AssetCondition = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR';
 export type AssetStatus = 'ACTIVE' | 'DAMAGED' | 'MISSING' | 'DISPOSED';

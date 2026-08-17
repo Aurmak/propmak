@@ -13,6 +13,10 @@ import {
 import { Unit, PropertyStatus, Stakeholder } from '../../types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { ComboBox } from '../ui/ComboBox';
+import { TogglePills } from '../ui/TogglePills';
+
+const HEADING = '#1B2559';
 
 interface EditPropertyModalProps {
   isOpen: boolean;
@@ -94,22 +98,22 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in text-slate-900">
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        
+      <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+
         {/* Header */}
-        <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div className="p-5 flex items-center justify-between" style={{ background: '#EEF1FA' }}>
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
-              <Building2 className="w-5 h-5 text-amber-400" />
+            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+              <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 leading-tight">Edit Unit & Estate Specs</h3>
+              <h3 className="text-base font-bold leading-tight" style={{ color: HEADING }}>Edit Unit & Estate Specs</h3>
               <p className="text-xs text-slate-500">Update floor, rental financials, status, or remove unit</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-white transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -166,39 +170,40 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
             </div>
           </div>
 
-          {/* Property Type & Status */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-slate-700 font-bold mb-1">Property Type</label>
-              <select
-                value={propertyType}
-                onChange={(e) => setPropertyType(e.target.value as any)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-slate-800"
-              >
-                <option value="RESIDENTIAL_APARTMENT">Residential Apartment</option>
-                <option value="RESIDENTIAL_PORTION">Upper / Ground Portion</option>
-                <option value="INDEPENDENT_HOUSE">Independent House / Villa</option>
-                <option value="COMMERCIAL_SHOP">Commercial Retail Shop</option>
-                <option value="COMMERCIAL_OFFICE">Corporate Office Floor</option>
-                <option value="PENTHOUSE">Penthouse Suite</option>
-              </select>
-            </div>
+          {/* Property Type */}
+          <div>
+            <label className="block text-slate-700 font-bold mb-1.5">Property Type</label>
+            <TogglePills
+              options={[
+                { value: 'RESIDENTIAL_APARTMENT', label: 'Residential Apartment' },
+                { value: 'RESIDENTIAL_PORTION', label: 'Upper / Ground Portion' },
+                { value: 'INDEPENDENT_HOUSE', label: 'Independent House / Villa' },
+                { value: 'COMMERCIAL_SHOP', label: 'Commercial Retail Shop' },
+                { value: 'COMMERCIAL_OFFICE', label: 'Corporate Office Floor' },
+                { value: 'PENTHOUSE', label: 'Penthouse Suite' },
+              ]}
+              value={propertyType}
+              onChange={val => setPropertyType(val as Unit['propertyType'])}
+              columns={2}
+            />
+          </div>
 
-            <div>
-              <label className="block text-slate-700 font-bold mb-1">Operational Status</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as PropertyStatus)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-slate-800"
-              >
-                <option value="RENTED_DIRECT">Rented (Agency Managed)</option>
-                <option value="VACANT_FOR_RENT">Vacant (Available for Rent)</option>
-                <option value="FOR_SALE">For Sale</option>
-                <option value="TOKEN_RECEIVED">Token Received</option>
-                <option value="SOLD_CONVERTED_TO_RENT">Sold-to-Rent (Investor)</option>
-                <option value="UNDER_RENOVATION">Under Renovation</option>
-              </select>
-            </div>
+          {/* Operational Status */}
+          <div>
+            <label className="block text-slate-700 font-bold mb-1.5">Operational Status</label>
+            <TogglePills
+              options={[
+                { value: 'RENTED_DIRECT', label: 'Rented (Agency Managed)' },
+                { value: 'VACANT_FOR_RENT', label: 'Vacant (Available for Rent)' },
+                { value: 'FOR_SALE', label: 'For Sale' },
+                { value: 'TOKEN_RECEIVED', label: 'Token Received' },
+                { value: 'SOLD_CONVERTED_TO_RENT', label: 'Sold-to-Rent (Investor)' },
+                { value: 'UNDER_RENOVATION', label: 'Under Renovation' },
+              ]}
+              value={status}
+              onChange={val => setStatus(val as PropertyStatus)}
+              columns={2}
+            />
           </div>
 
           {/* Financials: Rent & Area */}
@@ -237,22 +242,22 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
           {/* Owner Assignment */}
           <div>
             <label className="block text-slate-700 font-bold mb-1">Property Owner / Landlord</label>
-            <select
+            <ComboBox
+              options={stakeholders.map(s => ({
+                value: s.id,
+                label: s.name,
+                sublabel: s.phone,
+              }))}
               value={ownerId}
-              onChange={(e) => setOwnerId(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-slate-800"
-            >
-              {stakeholders.map(s => (
-                <option key={s.id} value={s.id}>
-                  {s.name} ({s.role.replace(/_/g, ' ')}) — {s.phone}
-                </option>
-              ))}
-            </select>
+              onChange={setOwnerId}
+              placeholder="Select an owner…"
+              searchPlaceholder="Search owners…"
+            />
           </div>
 
           {/* Delete Danger Zone */}
           {isConfirmingDelete ? (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between">
+            <div className="p-3 bg-rose-50 rounded-xl flex items-center justify-between">
               <span className="text-xs font-bold text-rose-900">Are you sure you want to delete this property?</span>
               <div className="flex items-center gap-2">
                 <Button
@@ -299,7 +304,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
               type="submit"
               variant="default"
             >
-              <Check className="w-4 h-4 text-amber-400 mr-1" />
+              <Check className="w-4 h-4 mr-1" />
               <span>Save Unit Changes</span>
             </Button>
           </div>
